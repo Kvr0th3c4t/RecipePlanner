@@ -1,0 +1,1930 @@
+{
+  "info": {
+    "name": "RecipePlanner API - Complete Test Suite",
+    "description": "Suite exhaustiva de tests incluyendo casos edge y validaciones",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [{
+  "name": "0. Setup & Cleanup",
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Server is running', function () {",
+              "    pm.response.to.not.have.status(500);",
+              "    pm.response.to.not.have.status(502);",
+              "    pm.response.to.not.have.status(503);",
+              "});",
+              "",
+              "pm.test('Response time is acceptable', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/profile",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "profile"]
+        }
+      }
+    }
+  ]
+},{
+  "name": "1. Authentication - Comprehensive",
+  "item": [
+    {
+      "name": "Register - Valid Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+             "pm.test('Status code is 201', function () {",
+"    pm.response.to.have.status(201);",
+"});",
+"",
+"pm.test('Response has correct structure', function () {",
+"    const jsonData = pm.response.json();",
+"    pm.expect(jsonData).to.have.property('success', true);",
+"    pm.expect(jsonData).to.have.property('message');",
+"    pm.expect(jsonData).to.have.property('data');",
+"    pm.expect(jsonData.data).to.have.property('user');",
+"});",
+"",
+"pm.test('User data is correct', function () {",
+"    const jsonData = pm.response.json();",
+"    pm.expect(jsonData.data.user).to.have.property('usuario_id');",
+"    pm.expect(jsonData.data.user).to.have.property('username', pm.environment.get('testUsername'));",
+"    pm.expect(jsonData.data.user).to.not.have.property('contraseña');",
+"});",
+"",
+"pm.test('Authentication cookies are set', function () {",
+"    const allHeaders = pm.response.headers.all();",
+"    const setCookieHeaders = allHeaders.filter(h => h.key.toLowerCase() === 'set-cookie');",
+"    const allCookies = setCookieHeaders.map(h => h.value).join(' ');",
+"    pm.expect(allCookies).to.include('accessToken=');",
+"    pm.expect(allCookies).to.include('refreshToken=');",
+"});",
+"",
+"pm.test('Cookies have security flags', function () {",
+"    const setCookieHeader = pm.response.headers.get('Set-Cookie');",
+"    pm.expect(setCookieHeader).to.include('HttpOnly');",
+"    pm.expect(setCookieHeader).to.include('SameSite=');",
+"});",
+"",
+"// Guardar datos para tests posteriores",
+"if (pm.response.code === 201) {",
+"    const jsonData = pm.response.json();",
+"    pm.environment.set('userId', jsonData.data.user.usuario_id);",
+"}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"email\": \"{{testEmail}}\",\n  \"contraseña\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "register"]
+        }
+      }
+    },
+    {
+  "name": "Register - Duplicate Email",
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+         "pm.test('Status code is 500 (user exists)', function () {",
+"    pm.response.to.have.status(500);",
+"});",
+"",
+"pm.test('Error response structure', function () {",
+"    const jsonData = pm.response.json();",
+"    pm.expect(jsonData).to.have.property('success', false);",
+"});"
+        ]
+      }
+    }
+  ],
+  "request": {
+    "method": "POST",
+    "header": [
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      }
+    ],
+    "body": {
+      "mode": "raw",
+      "raw": "{\n  \"username\": \"anotheruser\",\n  \"email\": \"{{testEmail}}\",\n  \"contraseña\": \"{{testPassword}}\"\n}"
+    },
+    "url": {
+      "raw": "{{baseUrl}}/api/register",
+      "host": ["{{baseUrl}}"],
+      "path": ["api", "register"]
+    }
+  }
+},
+    {
+      "name": "Register - Invalid Email Format",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Validation error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"testuser2\",\n  \"email\": \"invalid-email\",\n  \"contraseña\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "register"]
+        }
+      }
+    },
+    {
+      "name": "Login - Valid Credentials",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+"    pm.response.to.have.status(200);",
+"});",
+"",
+"pm.test('Login successful', function () {",
+"    const jsonData = pm.response.json();",
+"    pm.expect(jsonData.success).to.eql(true);",
+"    pm.expect(jsonData.message).to.include('exitoso');",
+"});",
+"",
+"pm.test('User data returned', function () {",
+"    const jsonData = pm.response.json();",
+"    pm.expect(jsonData.data).to.have.property('usuario_id');",
+"    pm.expect(jsonData.data).to.have.property('username');",
+"});",
+"",
+"pm.test('Authentication cookies set', function () {",
+"    const allHeaders = pm.response.headers.all();",
+"    const setCookieHeaders = allHeaders.filter(h => h.key.toLowerCase() === 'set-cookie');",
+"    const allCookies = setCookieHeaders.map(h => h.value).join(' ');",
+"    pm.expect(allCookies).to.include('accessToken=');",
+"    pm.expect(allCookies).to.include('refreshToken=');",
+"});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"contraseña\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "login"]
+        }
+      }
+    },
+    {
+      "name": "Login - Wrong Password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+"    pm.response.to.have.status(401);",
+"});",
+"",
+"pm.test('Authentication failed', function () {",
+"    const jsonData = pm.response.json();",
+"    pm.expect(jsonData.success).to.eql(false);",
+"});",
+"",
+"pm.test('No cookies set', function () {",
+"    const cookies = pm.cookies.toObject();",
+"    pm.expect(cookies).to.not.have.property('accessToken');",
+"    pm.expect(cookies).to.not.have.property('refreshToken');",
+"});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"contraseña\": \"wrongpassword\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "login"]
+        }
+      }
+    },
+    {
+      "name": "Get Profile - Authenticated",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Asegurar login antes del test",
+              "pm.sendRequest({",
+              "    url: pm.environment.get('baseUrl') + '/api/login',",
+              "    method: 'POST',",
+              "    header: {'Content-Type': 'application/json'},",
+              "    body: {",
+              "        mode: 'raw',",
+              "        raw: JSON.stringify({",
+              "            email: pm.environment.get('testEmail'),",
+              "            contraseña: pm.environment.get('testPassword')",
+              "        })",
+              "    }",
+              "}, function (err, response) {",
+              "    // Login completed",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Profile data structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('profile');",
+              "    pm.expect(jsonData.data.profile).to.have.property('usuario_id');",
+              "    pm.expect(jsonData.data.profile).to.have.property('username');",
+              "});",
+              "",
+              "pm.test('Profile data matches registered user', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.profile.username).to.eql(pm.environment.get('testUsername'));",
+              "});",
+              "",
+              "pm.test('No sensitive data in response', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.profile).to.not.have.property('contraseña');",
+              "    pm.expect(jsonData.data.profile).to.not.have.property('password');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/profile",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "profile"]
+        }
+      }
+    },
+    {
+      "name": "Get Profile - Unauthenticated",
+      "event": [
+        {
+  "listen": "prerequest",
+  "script": {
+    "exec": [
+      "// Hacer logout para limpiar cookies",
+      "pm.sendRequest({",
+      "    url: pm.environment.get('baseUrl') + '/api/logout',",
+      "    method: 'POST'",
+      "}, function (err, response) {",
+      "    // Cookies limpiadas",
+      "});"
+    ]
+  }
+},
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test('Unauthorized message', function () {",
+              "    const responseText = pm.response.text();",
+              "    pm.expect(responseText).to.include('no autorizado');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/profile",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "profile"]
+        }
+      }
+    },
+    {
+      "name": "Logout - Valid Session",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+            "// Login before logout",
+"pm.sendRequest({",
+"    url: pm.environment.get('baseUrl') + '/api/login',",
+"    method: 'POST',",
+"    header: {'Content-Type': 'application/json'},",
+"    body: {",
+"        mode: 'raw',",
+"        raw: JSON.stringify({",
+"            email: pm.environment.get('testEmail'),",
+"            contraseña: pm.environment.get('testPassword')",
+"        })",
+"    }",
+"}, function (err, response) {",
+"    // Login completed",
+"});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Logout successful', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});",
+              "",
+             "pm.test('Cookies cleared', function () {",
+"    const allHeaders = pm.response.headers.all();",
+"    const setCookieHeaders = allHeaders.filter(h => h.key.toLowerCase() === 'set-cookie');",
+"    const allCookies = setCookieHeaders.map(h => h.value).join(' ');",
+"    pm.expect(allCookies).to.satisfy(function(cookies) {",
+"        return cookies.includes('accessToken=;') || cookies.includes('Max-Age=0') || cookies.includes('Expires=');",
+"    });",
+"});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/logout",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "logout"]
+        }
+      }
+    }
+  ]
+},
+{
+  "name": "2. Recipes - Comprehensive",
+  "item": [
+    {
+      "name": "Setup Authentication",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Authentication setup successful', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"contraseña\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "login"]
+        }
+      }
+    },
+    {
+      "name": "Create Recipe - Valid Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Recipe created successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('recipe');",
+              "    pm.expect(jsonData.data.recipe).to.have.property('receta_id');",
+              "});",
+              "",
+              "pm.test('Recipe ID is valid', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.recipe.receta_id).to.be.a('number');",
+              "    pm.expect(jsonData.data.recipe.receta_id).to.be.above(0);",
+              "});",
+              "",
+              "// Guardar ID para tests posteriores",
+              "if (pm.response.code === 201) {",
+              "    const jsonData = pm.response.json();",
+              "    pm.environment.set('recipeId', jsonData.data.recipe.receta_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_nombre\": \"Pasta Carbonara Test\",\n  \"receta_foto\": \"https://example.com/pasta-carbonara.jpg\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Create Recipe - Without Photo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Recipe created with default photo', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});",
+              "",
+              "// Guardar segundo ID",
+              "if (pm.response.code === 201) {",
+              "    const jsonData = pm.response.json();",
+              "    pm.environment.set('secondRecipeId', jsonData.data.recipe.receta_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_nombre\": \"Pizza Margherita Test\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Create Recipe - Invalid Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Validation error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_nombre\": \"\",\n  \"receta_foto\": \"https://example.com/photo.jpg\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Get All Recipes",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Recipes structure is correct', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    ",
+              "    if (jsonData.data && jsonData.data.recetas) {",
+              "        pm.expect(jsonData.data.recetas).to.be.an('array');",
+              "        ",
+              "        if (jsonData.data.recetas.length > 0) {",
+              "            const firstRecipe = jsonData.data.recetas[0];",
+              "            pm.expect(firstRecipe).to.have.property('receta_id');",
+              "            pm.expect(firstRecipe).to.have.property('receta_nombre');",
+              "            pm.expect(firstRecipe).to.have.property('receta_foto');",
+              "        }",
+              "    }",
+              "});",
+              "",
+              "pm.test('Created recipes are listed', function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.recetas) {",
+              "        pm.expect(jsonData.data.recetas.length).to.be.at.least(2);",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Get Recipe by ID - Valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Recipe details structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('receta');",
+              "    pm.expect(jsonData.data).to.have.property('ingredientes');",
+              "});",
+              "",
+              "pm.test('Recipe data is complete', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.receta).to.have.property('recetaNombre');",
+              "    pm.expect(jsonData.data.receta).to.have.property('recetaFoto');",
+              "    pm.expect(jsonData.data.ingredientes).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}"]
+        }
+      }
+    },
+    {
+      "name": "Search Recipes - By Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Search results structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('recipes');",
+              "    pm.expect(jsonData.data).to.have.property('total');",
+              "    pm.expect(jsonData.data).to.have.property('currentPage');",
+              "    pm.expect(jsonData.data).to.have.property('totalPages');",
+              "});",
+              "",
+              "pm.test('Pagination data is valid', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.currentPage).to.be.a('number');",
+              "    pm.expect(jsonData.data.totalPages).to.be.a('number');",
+              "    pm.expect(jsonData.data.total).to.be.a('number');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/search?searchType=recipe&searchTerm=pasta&page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "search"],
+          "query": [
+            {
+              "key": "searchType",
+              "value": "recipe"
+            },
+            {
+              "key": "searchTerm",
+              "value": "pasta"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Recipe - Valid Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Recipe updated successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('updated', true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_nombre\": \"Pasta Carbonara Actualizada\",\n  \"receta_foto\": \"https://example.com/pasta-updated.jpg\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Recipe - Valid ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Recipe deleted successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{secondRecipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{secondRecipeId}}"]
+        }
+      }
+    }
+  ]
+},
+{
+  "name": "3. Ingredients - Comprehensive",
+  "item": [
+    {
+      "name": "Search Ingredients - Valid Query",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Ingredients search structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('ingredient');",
+              "    pm.expect(jsonData.data.ingredient).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Results limited to 5', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.ingredient.length).to.be.at.most(5);",
+              "});",
+              "",
+              "// Guardar primer ingrediente para tests posteriores",
+              "if (pm.response.code === 200) {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data.ingredient.length > 0) {",
+              "        pm.environment.set('ingredientId', jsonData.data.ingredient[0].ingrediente_id);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ingredients/search?q=tomate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ingredients", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": "tomate"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search Ingredients - Empty Query",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Empty query returns empty results', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data.ingredient).to.be.an('array');",
+              "    pm.expect(jsonData.data.ingredient.length).to.equal(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/ingredients/search?q=",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ingredients", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Units",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Units structure is correct', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('units');",
+              "    pm.expect(jsonData.data.units).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Units have required fields', function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data.units.length > 0) {",
+              "        const firstUnit = jsonData.data.units[0];",
+              "        pm.expect(firstUnit).to.have.property('unidad_id');",
+              "        pm.expect(firstUnit).to.have.property('medida_nombre');",
+              "        pm.expect(firstUnit).to.have.property('abreviatura');",
+              "    }",
+              "});",
+              "",
+              "// Guardar primera unidad para tests posteriores",
+              "if (pm.response.code === 200) {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data.units.length > 0) {",
+              "        pm.environment.set('unitId', jsonData.data.units[0].unidad_id);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/units",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "units"]
+        }
+      }
+    },
+    {
+      "name": "Add Ingredient to Recipe - Valid Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Ingredient added successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingrediente_id\": {{ingredientId}},\n  \"cantidad\": 200,\n  \"unidad_id\": {{unitId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}/ingredients",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}", "ingredients"]
+        }
+      }
+    },
+    {
+      "name": "Add Ingredient to Recipe - Duplicate",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 409', function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test('Duplicate ingredient error', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingrediente_id\": {{ingredientId}},\n  \"cantidad\": 300,\n  \"unidad_id\": {{unitId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}/ingredients",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}", "ingredients"]
+        }
+      }
+    },
+    {
+      "name": "Add Ingredient - Negative Quantity",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Validation error for negative quantity', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingrediente_id\": {{ingredientId}},\n  \"cantidad\": -50,\n  \"unidad_id\": {{unitId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}/ingredients",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}", "ingredients"]
+        }
+      }
+    },
+    {
+      "name": "Get Recipe Ingredients",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Recipe ingredients structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('receta');",
+              "    pm.expect(jsonData.data).to.have.property('ingredientes');",
+              "});",
+              "",
+              "pm.test('Added ingredient is listed', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.ingredientes).to.be.an('array');",
+              "    pm.expect(jsonData.data.ingredientes.length).to.be.at.least(1);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}/ingredients",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}", "ingredients"]
+        }
+      }
+    },
+    {
+      "name": "Update Ingredient - Valid Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Ingredient updated successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cantidad\": 250,\n  \"unidad_id\": {{unitId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}/ingredients/{{ingredientId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}", "ingredients", "{{ingredientId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Ingredient - Valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Ingredient deleted successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}/ingredients/{{ingredientId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}", "ingredients", "{{ingredientId}}"]
+        }
+      }
+    }
+  ]
+},
+{
+  "name": "4. Planning - Comprehensive",
+  "item": [
+    {
+      "name": "Get Planning - Empty",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Planning structure is correct', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.be.an('object');",
+              "});",
+              "",
+              "pm.test('All days and meals are present', function () {",
+              "    const jsonData = pm.response.json();",
+              "    const days = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];",
+              "    const meals = ['DESAYUNO', 'ALMUERZO', 'COMIDA', 'MERIENDA', 'CENA'];",
+              "    ",
+              "    days.forEach(day => {",
+              "        pm.expect(jsonData.data).to.have.property(day);",
+              "        meals.forEach(meal => {",
+              "            pm.expect(jsonData.data[day]).to.have.property(meal);",
+              "        });",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/planning",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning"]
+        }
+      }
+    },
+    {
+      "name": "Assign Recipe to Planning - Valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Recipe assigned successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_id\": {{recipeId}},\n  \"day\": \"LUNES\",\n  \"tipo_comida\": \"COMIDA\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/planning/asignRecipe",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning", "asignRecipe"]
+        }
+      }
+    },
+    {
+      "name": "Assign Recipe - Invalid Recipe ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Recipe not found error', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_id\": 99999,\n  \"day\": \"MARTES\",\n  \"tipo_comida\": \"CENA\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/planning/asignRecipe",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning", "asignRecipe"]
+        }
+      }
+    },
+    {
+      "name": "Assign Recipe - Invalid Day",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 500', function () {",
+              "    pm.response.to.have.status(500);",
+              "});",
+              "",
+              "pm.test('Invalid day validation error', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_id\": {{recipeId}},\n  \"day\": \"INVALIDDAY\",\n  \"tipo_comida\": \"COMIDA\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/planning/asignRecipe",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning", "asignRecipe"]
+        }
+      }
+    },
+    {
+      "name": "Get Planning - With Assignments",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Planning contains assigned recipe', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data.LUNES.COMIDA).to.not.be.null;",
+              "    pm.expect(jsonData.data.LUNES.COMIDA).to.have.property('receta_id');",
+              "    pm.expect(jsonData.data.LUNES.COMIDA).to.have.property('receta_nombre');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/planning",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning"]
+        }
+      }
+    },
+    {
+      "name": "Delete Recipe from Planning - Valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Recipe removed from planning', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_id\": {{recipeId}},\n  \"day\": \"LUNES\",\n  \"tipo_comida\": \"COMIDA\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/planning/deleteRecipe",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning", "deleteRecipe"]
+        }
+      }
+    },
+    {
+      "name": "Delete Non-existent Assignment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Assignment not found error', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_id\": {{recipeId}},\n  \"day\": \"VIERNES\",\n  \"tipo_comida\": \"DESAYUNO\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/planning/deleteRecipe",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning", "deleteRecipe"]
+        }
+      }
+    },
+    {
+      "name": "Get Shopping List - Empty",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Empty shopping list structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.eql(true);",
+              "    pm.expect(jsonData.data).to.have.property('categorias');",
+              "    pm.expect(jsonData.data.categorias).to.be.an('array');",
+              "    pm.expect(jsonData.data.categorias.length).to.equal(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/planning/shopping-list",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "planning", "shopping-list"]
+        }
+      }
+    }
+  ]
+},
+{
+  "name": "5. Security & Edge Cases",
+  "item": [
+    {
+      "name": "SQL Injection Attempt - Recipe Search",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Server handles SQL injection safely', function () {",
+              "    pm.expect([200, 400, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('No database error leaked', function () {",
+              "    const responseText = pm.response.text();",
+              "    pm.expect(responseText.toLowerCase()).to.not.include('mysql');",
+              "    pm.expect(responseText.toLowerCase()).to.not.include('database');",
+              "    pm.expect(responseText.toLowerCase()).to.not.include('syntax error');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/search?searchType=recipe&searchTerm=' OR '1'='1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "search"],
+          "query": [
+            {
+              "key": "searchType",
+              "value": "recipe"
+            },
+            {
+              "key": "searchTerm",
+              "value": "' OR '1'='1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "XSS Attempt - Recipe Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Server handles XSS attempt', function () {",
+              "    pm.expect([400, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Script tags not executed', function () {",
+              "    const responseText = pm.response.text();",
+              "    pm.expect(responseText).to.not.include('<script>alert');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_nombre\": \"<script>alert('xss')</script>\",\n  \"receta_foto\": \"https://example.com/hack.jpg\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Large Payload Attack",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Server handles large payload', function () {",
+              "    pm.expect([400, 413, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('Response time is reasonable', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receta_nombre\": \"A\".repeat(10000),\n  \"receta_foto\": \"https://example.com/photo.jpg\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Concurrent Requests Test",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Server handles concurrent requests', function () {",
+              "    pm.response.to.not.have.status(500);",
+              "});",
+              "",
+              "pm.test('Response time is acceptable under load', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Invalid Content-Type Attack",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Server handles invalid content type', function () {",
+              "    pm.expect([400, 415, 500]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "<recipe><name>Test</name></recipe>"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    }
+  ]
+},
+{
+  "name": "6. Performance Tests",
+  "item": [
+    {
+      "name": "Response Time - Get All Recipes",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Response time is under 1 second', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+              "});",
+              "",
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Response Time - Search with Results",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Search response time is acceptable', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.test('Search returns results quickly', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/search?searchType=recipe&searchTerm=a&page=1&limit=50",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "search"],
+          "query": [
+            {
+              "key": "searchType",
+              "value": "recipe"
+            },
+            {
+              "key": "searchTerm",
+              "value": "a"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      }
+    },
+    {
+  "name": "Refresh Token - Valid",
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Hacer login para obtener tokens",
+          "pm.sendRequest({",
+          "    url: pm.environment.get('baseUrl') + '/api/login',",
+          "    method: 'POST',",
+          "    header: {'Content-Type': 'application/json'},",
+          "    body: {",
+          "        mode: 'raw',",
+          "        raw: JSON.stringify({",
+          "            email: pm.environment.get('testEmail'),",
+          "            contraseña: pm.environment.get('testPassword')",
+          "        })",
+          "    }",
+          "}, function (err, response) {",
+          "    console.log('Login completado antes del refresh');",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "pm.test('Status code is 200', function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test('Response indicates success', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData.success).to.eql(true);",
+          "});",
+          "",
+          "pm.test('New access token provided', function () {",
+          "    const allHeaders = pm.response.headers.all();",
+          "    const setCookieHeaders = allHeaders.filter(h => h.key.toLowerCase() === 'set-cookie');",
+          "    const allCookies = setCookieHeaders.map(h => h.value).join(' ');",
+          "    pm.expect(allCookies).to.include('accessToken=');",
+          "});"
+        ]
+      }
+    }
+  ],
+  "request": {
+    "method": "POST",
+    "header": [],
+    "url": {
+      "raw": "{{baseUrl}}/api/refresh",
+      "host": ["{{baseUrl}}"],
+      "path": ["api", "refresh"]
+    }
+  }
+},{
+  "name": "Refresh Token - Invalid",
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Hacer logout para limpiar cookies",
+          "pm.sendRequest({",
+          "    url: pm.environment.get('baseUrl') + '/api/logout',",
+          "    method: 'POST'",
+          "}, function (err, response) {",
+          "    console.log('Cookies limpiadas');",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "pm.test('Status code is 401', function () {",
+          "    pm.response.to.have.status(401);",
+          "});",
+          "",
+          "pm.test('Error message returned', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData.success).to.eql(false);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "request": {
+    "method": "POST",
+    "header": [],
+    "url": {
+      "raw": "{{baseUrl}}/api/refresh",
+      "host": ["{{baseUrl}}"],
+      "path": ["api", "refresh"]
+    }
+  }
+},
+    {
+  "name": "Memory Usage - Large Query",
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Login antes del test",
+          "pm.sendRequest({",
+          "    url: pm.environment.get('baseUrl') + '/api/login',",
+          "    method: 'POST',",
+          "    header: {'Content-Type': 'application/json'},",
+          "    body: {",
+          "        mode: 'raw',",
+          "        raw: JSON.stringify({",
+          "            email: pm.environment.get('testEmail'),",
+          "            contraseña: pm.environment.get('testPassword')",
+          "        })",
+          "    }",
+          "}, function (err, response) {",
+          "    console.log('Login completado antes del test de performance');",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "pm.test('Large query completes successfully', function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test('Response time under load', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+      "raw": "{{baseUrl}}/api/recipes/search?searchType=recipe&searchTerm=&page=1&limit=100",
+      "host": ["{{baseUrl}}"],
+      "path": ["api", "recipes", "search"],
+      "query": [
+        {
+          "key": "searchType",
+          "value": "recipe"
+        },
+        {
+          "key": "searchTerm",
+          "value": ""
+        },
+        {
+          "key": "page",
+          "value": "1"
+        },
+        {
+          "key": "limit",
+          "value": "100"
+        }
+      ]
+    }
+  }
+}
+  ]
+}
+  ]
+}
+

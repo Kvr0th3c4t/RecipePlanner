@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+@theme {
+    --color-brand-primary: oklch(51.1% 0.096 186.391);
+    --color-brand-secondary: oklch(64.6% 0.222 41.116);
+    --color-brand-accent: oklch(44.4% 0.011 73.639);
+    --color-brand-danger: oklch(57.7% 0.245 27.325);
+    --shadow-focus: 0 0 0 3px oklch(51.1% 0.096 186.391 / 0.2);
+    --spacing-touch: 2.75rem;
+}
+
+* {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+@layer base {
+    
+    body {
+        font-family: var(--font-sans);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+        color: var(--color-gray-800);
+        background-color: var(--color-gray-800/15);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1 {
+        font-size: var(--text-3xl);
+        line-height: var(--text-3xl--line-height);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-gray-900);
+    }
+
+    h2 {
+        font-size: var(--text-2xl);
+        line-height: var(--text-2xl--line-height);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-gray-900);
+    }
+
+    h3 {
+        font-size: var(--text-xl);
+        line-height: var(--text-xl--line-height);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-gray-900);
+    }
+
+    h4 {
+        font-size: var(--text-lg);
+        line-height: var(--text-lg--line-height);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-gray-900);
+    }
+
+    button:focus,
+    a:focus,
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+        box-shadow: var(--shadow-focus);
+    }
+
+    p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select {
+        min-height: var(--spacing-touch);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--color-gray-300);
+        padding: 0.75rem;
+        font-size: var(--text-base);
+    }
+
+    button {
+        min-height: var(--spacing-touch);
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+@layer utilities {
+    .text-large-wcag {
+        font-size: var(--text-lg);
+        line-height: var(--text-lg--line-height);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    .safe-touch {
+        min-height: var(--spacing-touch);
+        min-width: var(--spacing-touch);
+    }
+}

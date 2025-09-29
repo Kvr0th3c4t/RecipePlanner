@@ -1,0 +1,38 @@
+# Variables de entorno - CRÍTICO
+**/.env
+**/.env.*
+*.env
+
+# Dependencias
+**/node_modules/
+**/.pnpm-store/
+
+# Backend específico
+back/uploads/
+back/logs/
+back/dist/
+back/build/
+
+# Frontend específico
+front/node_modules/
+front/dist/
+front/build/
+front/.vite/
+front/.vite-temp/
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Archivos sensibles
+*.key
+*.pem
+config/secrets.json
