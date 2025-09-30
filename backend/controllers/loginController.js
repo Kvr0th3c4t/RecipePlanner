@@ -1,54 +1,28 @@
 import { validateLogin } from "../schemas/userSchema.js";
-import { userModel } from "../models/UserModel.js";
 import { successResponse, errorResponse } from "../utils/responseHelper.js";
+import * as userService from "../services/userService.js";
 import { MESSAGES } from "../constants/messages.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 
 export class loginController {
   static async login(req, res) {
-    const result = validateLogin(req.body);
+    const validation = validateLogin(req.body);
 
-    if (!result.success) {
+    if (!validation.success) {
       return errorResponse(res, 400, MESSAGES.INVALID_CREDENTIAL_FORMAT);
     }
 
     try {
-      const user = await userModel.findByEmail({ email: result.data.email });
+      const result = await userService.userLogin(validation.data);
 
-      if (!user) {
-        return errorResponse(res, 401, MESSAGES.INVALID_CREDENTIALS);
-      }
-
-      const passExist = await bcrypt.compare(
-        result.data.contraseña,
-        user.contraseña
-      );
-
-      if (!passExist) {
-        return errorResponse(res, 401, MESSAGES.INVALID_CREDENTIALS);
-      }
-
-      const accessToken = jwt.sign(
-        { usuario_id: user.usuario_id, username: user.username },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
-      const refreshToken = jwt.sign(
-        { usuario_id: user.usuario_id, username: user.username },
-        process.env.JWT_REFRESH,
-        { expiresIn: "7d" }
-      );
-
-      res.cookie("accessToken", accessToken, {
+      res.cookie("accessToken", result.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 60 * 60 * 1000,
       });
 
-      res.cookie("refreshToken", refreshToken, {
+      res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
@@ -56,10 +30,13 @@ export class loginController {
       });
 
       return successResponse(res, 200, MESSAGES.LOGIN_SUCCESS, {
-        usuario_id: user.usuario_id,
-        username: user.username,
+        usuario_id: result.user.usuario_id,
+        username: result.user.username,
       });
     } catch (error) {
+      if (error.statusCode === 401) {
+        return errorResponse(res, 401, MESSAGES.INVALID_CREDENTIALS);
+      }
       return errorResponse(res, 500, MESSAGES.LOGIN_ERROR);
     }
   }

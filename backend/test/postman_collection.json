@@ -116,8 +116,8 @@
       "listen": "test",
       "script": {
         "exec": [
-         "pm.test('Status code is 500 (user exists)', function () {",
-"    pm.response.to.have.status(500);",
+         "pm.test('Status code is 409 (user exists)', function () {",
+"    pm.response.to.have.status(409);",
 "});",
 "",
 "pm.test('Error response structure', function () {",
