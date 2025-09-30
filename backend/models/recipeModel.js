@@ -129,42 +129,37 @@ export class recipeModel {
   }
 
   static async updateRecipe(usuario_id, receta_id, { recipe }) {
-    const [recipeUser] = await connection.query(
-      `SELECT receta_nombre, receta_foto FROM recetas WHERE usuario_id = UUID_TO_BIN(?) AND receta_id = ?`,
-      [usuario_id, receta_id]
-    );
+    try {
+      const [result] = await connection.query(
+        "UPDATE recetas SET receta_nombre = ?, receta_foto = ? WHERE receta_id = ? AND usuario_id = UUID_TO_BIN(?)",
+        [recipe.receta_nombre, recipe.receta_foto, receta_id, usuario_id]
+      );
 
-    if (recipeUser.length === 0) {
-      throw new Error("Receta no encontrada");
-    } else {
-      try {
-        await connection.query(
-          "UPDATE recetas SET receta_nombre = ?, receta_foto = ? WHERE receta_id = ?",
-          [recipe.receta_nombre, recipe.receta_foto, receta_id]
-        );
-      } catch (error) {
-        throw new Error("Error al actualizar la receta");
+      if (result.affectedRows === 0) {
+        throw new Error("Receta no encontrada");
       }
+    } catch (error) {
+      if (error.message === "Receta no encontrada") {
+        throw error;
+      }
+      throw new Error("Error al actualizar la receta");
     }
   }
 
   static async deleteRecipe(usuario_id, receta_id) {
-    const [recipeUser] = await connection.query(
-      `SELECT receta_nombre, receta_foto FROM recetas WHERE usuario_id = UUID_TO_BIN(?) AND receta_id = ?`,
-      [usuario_id, receta_id]
-    );
-
-    if (recipeUser.length === 0) {
-      throw new Error("Receta no encontrada");
-    } else {
-      try {
-        await connection.query(
-          "DELETE FROM recetas WHERE usuario_id = UUID_TO_BIN(?) AND receta_id = ?",
-          [usuario_id, receta_id]
-        );
-      } catch (error) {
-        throw new Error("Error al eliminar la receta");
+    try {
+      const [result] = await connection.query(
+        "DELETE FROM recetas WHERE usuario_id = UUID_TO_BIN(?) AND receta_id = ?",
+        [usuario_id, receta_id]
+      );
+      if (result.affectedRows === 0) {
+        throw new Error("Receta no encontrada");
       }
+    } catch (error) {
+      if (error.message === "Receta no encontrada") {
+        throw error;
+      }
+      throw new Error("Error al eliminar la receta");
     }
   }
 
