@@ -4,6 +4,11 @@ import { validateIngredient } from "../schemas/ingredientSchema.js";
 import { errorResponse, successResponse } from "../utils/responseHelper.js";
 
 export class ingredientController {
+  /**
+   * GET /api/ingredients/search
+   * Busca un ingrediente
+   */
+
   static async findIngredientByName(req, res) {
     const searchTerm = req.query.q || "";
 
@@ -23,6 +28,11 @@ export class ingredientController {
       return errorResponse(res, 500, MESSAGES.INTERNAL_ERROR);
     }
   }
+
+  /**
+   * POST /api/recipes/:id/ingredients
+   * Añade un ingrediente a una receta después de verificar datos y que la receta existe
+   */
 
   static async addIngredientToRecipe(req, res) {
     const validatedData = validateIngredient(req.body);
@@ -52,6 +62,11 @@ export class ingredientController {
       return errorResponse(res, 500, MESSAGES.INTERNAL_ERROR);
     }
   }
+
+  /**
+   * DELETE /api/recipes/:id/ingredients/:ingredientId
+   * Elimina un ingrediente de una receta
+   */
 
   static async deleteIngredient(req, res) {
     const recipeId = req.params.id;

@@ -4,6 +4,11 @@ import { successResponse, errorResponse } from "../utils/responseHelper.js";
 import { MESSAGES } from "../constants/messages.js";
 
 export class recipeController {
+  /**
+   * POST /api/recipes
+   * Crea una nueva receta
+   */
+
   static async insertRecipe(req, res) {
     const validation = validateRecipe(req.body);
 
@@ -25,6 +30,11 @@ export class recipeController {
     }
   }
 
+  /**
+   * GET /api/recipes
+   * Obtenemos todas las recetas de un usuario
+   */
+
   static async getAllRecipes(req, res) {
     const userId = req.user.usuario_id;
 
@@ -42,6 +52,11 @@ export class recipeController {
       return errorResponse(res, 500, MESSAGES.INTERNAL_ERROR);
     }
   }
+
+  /**
+   * GET /api/recipes/search
+   * Filtramos por el nombre de receta
+   */
 
   static async getFilteredRecipes(req, res) {
     const userId = req.user.usuario_id;
@@ -64,6 +79,11 @@ export class recipeController {
     }
   }
 
+  /**
+   * GET /api/recipes/:id
+   * Obtenemos una de las recetas del usuario por su id
+   */
+
   static async getRecipe(req, res) {
     const userId = req.user.usuario_id;
     const recipeId = req.params.id;
@@ -79,6 +99,11 @@ export class recipeController {
       return errorResponse(res, 500, MESSAGES.INTERNAL_ERROR);
     }
   }
+
+  /**
+   * PUT /api/recipes/:id
+   * Actualizamos una de las recetas del usuario por su id
+   */
 
   static async updateRecipe(req, res) {
     const validation = validateRecipe(req.body);
@@ -105,6 +130,11 @@ export class recipeController {
       return errorResponse(res, 500, MESSAGES.INTERNAL_ERROR);
     }
   }
+
+  /**
+   * DELETE /api/recipes/:id
+   * Eliminamos una de las recetas del usuario por su id
+   */
 
   static async deleteRecipe(req, res) {
     const userId = req.user.usuario_id;
