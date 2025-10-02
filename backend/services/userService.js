@@ -9,34 +9,25 @@ import { userModel } from "../models/userModel.js";
  */
 
 export const registerUser = async (userData) => {
-  console.log("=== SERVICE: registerUser INICIO ===");
   const { username, email, contraseña } = userData;
 
   const existingUser = await userModel.findByEmail({ email });
-  console.log("SERVICE: existingUser:", existingUser);
 
   if (existingUser) {
-    console.log("SERVICE: Usuario ya existe, lanzando error 409");
     const error = new Error("El email ya está registrado");
     error.statusCode = 409;
     throw error;
   }
 
-  console.log("SERVICE: Hasheando contraseña...");
   const hashedPassword = await bcrypt.hash(contraseña, 10);
-  console.log("SERVICE: Contraseña hasheada");
 
-  console.log("SERVICE: Llamando a userModel.createUser...");
   const newUser = await userModel.createUser({
     username,
     email,
     contraseña: hashedPassword,
   });
-  console.log("SERVICE: newUser recibido del modelo:", newUser);
 
-  console.log("SERVICE: Generando tokens...");
   const tokens = generateTokens(newUser);
-  console.log("SERVICE: Tokens generados");
 
   const resultado = {
     user: {
@@ -47,7 +38,6 @@ export const registerUser = async (userData) => {
     ...tokens,
   };
 
-  console.log("SERVICE: Retornando resultado:", resultado);
   return resultado;
 };
 

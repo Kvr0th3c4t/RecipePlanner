@@ -14,6 +14,7 @@ export class ingredientModel {
       );
     }
   }
+
   static async addIngredientToRecipe(
     receta_id,
     ingrediente_id,
@@ -22,7 +23,7 @@ export class ingredientModel {
   ) {
     try {
       const [ingredient] = await connection.query(
-        "INSERT INTO receta_ingredientes (ingrediente_id, cantidad, unidad_id, receta_id) VALUES (?, ? , ?, ?)",
+        "INSERT INTO receta_ingredientes (ingrediente_id, cantidad, unidad_id, receta_id) VALUES (?, ?, ?, ?)",
         [ingrediente_id, cantidad, unidad_id, receta_id]
       );
       return ingredient;
@@ -30,6 +31,7 @@ export class ingredientModel {
       throw new Error("Error al añadir ingrediente");
     }
   }
+
   static async findIngredientById(id) {
     try {
       const [ingrediente] = await connection.query(
@@ -41,6 +43,7 @@ export class ingredientModel {
       throw new Error("Ingrediente no encontrado");
     }
   }
+
   static async findUnitById(id) {
     try {
       const [unidad] = await connection.query(
@@ -52,6 +55,7 @@ export class ingredientModel {
       throw new Error("Unidad no encontrada");
     }
   }
+
   static async checkIngredientInRecipe(receta_id, ingrediente_id) {
     try {
       const [receta] = await connection.query(
@@ -93,22 +97,20 @@ export class ingredientModel {
   }
 
   static async deleteIngredient(receta_id, ingrediente_id) {
-    const ingredientExists = await this.checkIngredientInRecipe(
-      receta_id,
-      ingrediente_id
-    );
+    try {
+      const [result] = await connection.query(
+        "DELETE FROM receta_ingredientes WHERE receta_id = ? AND ingrediente_id = ?",
+        [receta_id, ingrediente_id]
+      );
 
-    if (ingredientExists.length === 0) {
-      throw new Error("El ingrediente no está en esta receta");
-    } else {
-      try {
-        await connection.query(
-          "DELETE FROM receta_ingredientes WHERE receta_id = ? AND ingrediente_id = ?",
-          [receta_id, ingrediente_id]
-        );
-      } catch (error) {
-        throw new Error("Error al eliminar el ingrediente");
+      if (result.affectedRows === 0) {
+        throw new Error("Ingrediente no encontrado en la receta");
       }
+    } catch (error) {
+      if (error.message === "Ingrediente no encontrado en la receta") {
+        throw error;
+      }
+      throw new Error("Error al eliminar el ingrediente");
     }
   }
 
@@ -119,11 +121,18 @@ export class ingredientModel {
     unidad_id
   ) {
     try {
-      await connection.query(
+      const [result] = await connection.query(
         "UPDATE receta_ingredientes SET cantidad = ?, unidad_id = ? WHERE ingrediente_id = ? AND receta_id = ?",
         [cantidad, unidad_id, ingrediente_id, receta_id]
       );
+
+      if (result.affectedRows === 0) {
+        throw new Error("Ingrediente no encontrado en la receta");
+      }
     } catch (error) {
+      if (error.message === "Ingrediente no encontrado en la receta") {
+        throw error;
+      }
       throw new Error("Error al actualizar el ingrediente");
     }
   }

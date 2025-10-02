@@ -13,14 +13,10 @@ router.post(
   "/recipes/:id/ingredients",
   ingredientController.addIngredientToRecipe
 );
-router.get(
-  "/recipes/:id/ingredients",
-  ingredientController.getIngredientDetail
-);
-router.delete("/recipes/:id/ingredients/:ingredientId", ingredientController.deleteIngredient);
-router.put(
+
+router.delete(
   "/recipes/:id/ingredients/:ingredientId",
-  ingredientController.updateIngredient
+  ingredientController.deleteIngredient
 );
 
 export default router;
