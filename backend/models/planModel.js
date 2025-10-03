@@ -1,4 +1,3 @@
-import { da } from "zod/v4/locales";
 import connection from "../config/database.js";
 
 export class planModel {
