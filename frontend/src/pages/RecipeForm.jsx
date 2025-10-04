@@ -1,210 +1,38 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
+import { useRecipeForm } from '../../hooks/useRecipeForm';
 import { MainContainer } from '../components/layout/mainContainer';
 
 export const RecipeForm = () => {
-  const [mode, setMode] = useState("create");
-  const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState();
-  const [recipeData, setRecipeData] = useState();
-  const [ingredients, setIngredients] = useState([]);
-  const [units, setUnits] = useState();
-  const [recipeId, setRecipeId] = useState(null);
-  const [searchResults, setSearchResults] = useState({});
-  const [showSuggestions, setShowSuggestions] = useState({});
-  const navigate = useNavigate();
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
-  const selectIngredient = (suggestion, index) => {
-    handleIngredientChange(index, 'nombreIngrediente', suggestion.ingrediente_nombre);
-    handleIngredientChange(index, 'ingrediente_id', suggestion.ingrediente_id);
-    setShowSuggestions(prev => ({ ...prev, [index]: false }));
-  };
+  const {
+    mode,
+    loading,
+    formData,
+    ingredients,
+    units,
+    searchResults,
+    showSuggestions,
+    handleFormDataChange,
+    handleIngredientChange,
+    addIngredientRow,
+    removeIngredientRow,
+    searchIngredients,
+    selectIngredient,
+    handleSubmit
+  } = useRecipeForm(id);
 
-  useEffect(() => {
-    const fetchUnits = async () => {
-      const response = await fetch("/api/units");
-      const unitData = await response.json();
-      setUnits(unitData);
-    }
-
-    const loadingData = async () => {
-      if (id) {
-        setRecipeId(id);
-        setMode("edit")
-      }
-
-      await fetchUnits()
-
-      if (id) {
-        try {
-          const response = await fetch(`/api/recipes/${id}`);
-          const data = await response.json();
-
-          setRecipeData(data);
-          setFormData({
-            receta_nombre: data.data.receta.recetaNombre,
-            receta_foto: data.data.receta.recetaFoto
-          });
-          setIngredients(data.data.ingredientes);
-        } catch (error) {
-          console.error("Error cargando receta:", error);
-          alert("Error al cargar la receta");
-          navigate('/myRecipes');
-          return;
-        }
-      } else {
-        setFormData({ receta_nombre: '', receta_foto: '' });
-      }
-
-      setLoading(false);
-    }
-
-    loadingData()
-  }, [id])
-
-  const handleFormDataChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleIngredientChange = (index, field, value) => {
-    setIngredients(prev =>
-      prev.map((ingredient, i) =>
-        i === index ? { ...ingredient, [field]: value } : ingredient
-      )
-    );
-  };
-
-  const addIngredientRow = () => {
-    setIngredients(prev => [...prev, {
-      ingrediente_id: '',
-      nombreIngrediente: '',
-      cantidad: '',
-      unidad_id: '',
-      categoria: ''
-    }]);
-  };
-
-  const removeIngredientRow = (index) => {
-    setIngredients(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const createRecipe = async () => {
-    const recipeResponse = await fetch('/api/recipes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        receta_nombre: formData.receta_nombre,
-        receta_foto: formData.receta_foto
-      })
-    });
-
-    if (!recipeResponse.ok) throw new Error('Error creando receta');
-
-    const recipeResult = await recipeResponse.json();
-    const newRecipeId = recipeResult.data.recipe.receta_id;
-
-    const validIngredients = ingredients.filter(ing =>
-      ing.ingrediente_id && ing.cantidad && ing.unidad_id
-    );
-
-    for (const ingredient of validIngredients) {
-      const ingredientResponse = await fetch(`/api/recipes/${newRecipeId}/ingredients`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ingrediente_id: parseInt(ingredient.ingrediente_id),
-          cantidad: parseFloat(ingredient.cantidad),
-          unidad_id: parseInt(ingredient.unidad_id)
-        })
-      });
-
-      if (!ingredientResponse.ok) {
-        throw new Error(`Error agregando ingrediente: ${ingredient.nombreIngrediente}`);
-      }
-    }
-
-    alert("Receta creada correctamente");
-    navigate('/myRecipes')
-  };
-
-  const updateRecipe = async () => {
-    const recipeResponse = await fetch(`/api/recipes/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        receta_nombre: formData.receta_nombre,
-        receta_foto: formData.receta_foto
-      })
-    });
-
-    if (!recipeResponse.ok) throw new Error('Error actualizando receta');
-
-    for (const originalIngredient of recipeData.data.ingredientes) {
-      await fetch(`/api/recipes/${id}/ingredients/${originalIngredient.ingrediente_id}`, {
-        method: 'DELETE'
-      });
-    }
-
-    const validIngredients = ingredients.filter(ing =>
-      ing.ingrediente_id && ing.cantidad && ing.unidad_id
-    );
-
-    for (const ingredient of validIngredients) {
-      const ingredientResponse = await fetch(`/api/recipes/${id}/ingredients`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ingrediente_id: parseInt(ingredient.ingrediente_id),
-          cantidad: parseFloat(ingredient.cantidad),
-          unidad_id: parseInt(ingredient.unidad_id)
-        })
-      });
-
-      if (!ingredientResponse.ok) {
-        throw new Error(`Error agregando ingrediente: ${ingredient.nombreIngrediente}`);
-      }
-    }
-
-    alert("Receta actualizada correctamente");
-    navigate('/myRecipes');
-  };
-
-  const searchIngredients = async (query, index) => {
-    if (query.length < 2) {
-      setSearchResults(prev => ({ ...prev, [index]: [] }));
-      return;
-    }
-
-    const response = await fetch(`/api/ingredients/search?q=${query}`);
-    const data = await response.json();
-
-    setSearchResults(prev => ({
-      ...prev,
-      [index]: data.data.ingredient || []
-    }));
-    setShowSuggestions(prev => ({ ...prev, [index]: true }));
-  };
-
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (mode === "create") {
-        await createRecipe();
-      } else {
-        await updateRecipe();
-      }
-    } catch (error) {
-      console.error("Error:", error);
+    const success = await handleSubmit();
+    if (success) {
+      alert(mode === "create" ? "Receta creada correctamente" : "Receta actualizada correctamente");
+      navigate('/myRecipes');
+    } else {
       alert("Error al procesar la receta");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -216,7 +44,7 @@ export const RecipeForm = () => {
         </div>
       ) : (
         <div className='h-full overflow-hidden'>
-          <form onSubmit={handleSubmit} className='max-w-7xl mx-auto p-6 h-full flex flex-col'>
+          <form onSubmit={onSubmit} className='max-w-7xl mx-auto p-6 h-full flex flex-col'>
 
             <div className='mb-8 flex-shrink-0'>
               <input
@@ -291,7 +119,7 @@ export const RecipeForm = () => {
                             className="w-24 px-2 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-brand-primary"
                           >
                             <option value="">Unidad</option>
-                            {units?.data?.units?.map(unit => (
+                            {units?.map(unit => (
                               <option key={unit.unidad_id} value={unit.unidad_id}>
                                 {unit.abreviatura}
                               </option>

@@ -1,43 +1,19 @@
 import React from 'react'
-import { useEffect } from 'react';
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { MainContainer } from '../components/layout/mainContainer';
+import { useRecipeSearch } from '../../hooks/useRecipeSearch.js';
 
 export const MyRecipes = () => {
-    const [recipeData, setRecipeData] = useState();
-    const [loading, setLoading] = useState(true);
-    const [searchType, setSearchType] = useState("recipe");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [isSearching, setIsSearching] = useState(false)
+
 
     const navigate = useNavigate();
 
-    const fetchRecipeData = async () => {
-        const response = await fetch(`/api/recipes/search?searchType=${searchType}&searchTerm=${searchTerm}&page=${currentPage}&limit=6`);
-        const data = await response.json()
-        setRecipeData(data)
-    }
-
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true)
-            await fetchRecipeData()
-            setLoading(false)
-        }
-        loadData()
-    }, [searchType, currentPage])
-
-    const handleFilter = async () => {
-        setLoading(true)
-        await fetchRecipeData()
-        setLoading(false)
-    }
-
-    const handleSearchParam = () => {
-        setSearchTerm("");
-    }
+    const {
+        recipes, totalPages, loading,
+        searchType, searchTerm, currentPage,
+        setSearchType, setSearchTerm,
+        handleFilter, clearFilters, nextPage, prevPage
+    } = useRecipeSearch();
 
     const handleDetailView = (id) => {
         navigate(`/recipe/${id}`)
@@ -58,12 +34,11 @@ export const MyRecipes = () => {
 
                 if (response.ok) {
                     alert("Receta eliminada correctamente")
-                    await fetchRecipeData();
+                    handleFilter();
                 } else {
                     alert("Error al borrar la receta")
                 }
             } catch (error) {
-                console.error("Error:", error);
                 alert("Error al eliminar la receta");
             }
         }
@@ -116,7 +91,7 @@ export const MyRecipes = () => {
                                 </button>
                                 <button
                                     type='button'
-                                    onClick={handleSearchParam}
+                                    onClick={clearFilters}
                                     className="
                                 px-6 py-2 
                                 bg-brand-primary/65 text-white 
@@ -136,7 +111,7 @@ export const MyRecipes = () => {
                         </section>
 
                         <main className="flex-1 overflow-y-auto justify-center items-center px-4 py-4">
-                            {!recipeData?.data?.recipes || recipeData.data.recipes.length === 0 ? (
+                            {!recipes || recipes.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center">
                                     <h2 className="text-xl font-semibold text-gray-700 mb-2">No se encontraron recetas</h2>
                                     <p className="text-gray-500 mb-4">Prueba con otros términos de búsqueda</p>
@@ -150,7 +125,7 @@ export const MyRecipes = () => {
                             ) : (
                                 <div className="grid grid-cols-3 gap-4">
                                     {(() => {
-                                        const recipesWithCTA = [...recipeData.data.recipes];
+                                        const recipesWithCTA = [...recipes];
                                         if (recipesWithCTA.length < 6 && searchTerm === "") {
                                             recipesWithCTA.push({ isCTA: true });
                                         }
@@ -206,11 +181,11 @@ export const MyRecipes = () => {
                             )}
                         </main>
 
-                        {recipeData?.data && (
+                        {recipes && (
                             <div className="sticky bottom-0z-10 px-0 py-5 w-full">
                                 <div className="flex justify-center items-center gap-4 px-4 w-full">
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        onClick={prevPage}
                                         hidden={currentPage === 1}
                                         className="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
                                     >
@@ -218,12 +193,12 @@ export const MyRecipes = () => {
                                     </button>
 
                                     <span className="text-gray-700">
-                                        Página {currentPage} de {recipeData.data.totalPages}
+                                        Página {currentPage} de {totalPages}
                                     </span>
 
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, recipeData.data.totalPages))}
-                                        hidden={currentPage === recipeData.data.totalPages}
+                                        onClick={nextPage}
+                                        hidden={currentPage === totalPages}
                                         className="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
                                     >
                                         Siguiente

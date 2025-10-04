@@ -1,40 +1,20 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+import { useFetch } from '../../hooks/useFetch.js';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainContainer } from '../components/layout/mainContainer';
 
 export const RecipeDetail = () => {
     const { user } = useUser();
-    const [loading, setLoading] = useState(true);
-    const [recipeData, setRecipeData] = useState();
     const navigate = useNavigate();
     const { id } = useParams();
 
-    const fetchRecipeData = async () => {
-        console.log('Fetching recipe with ID:', id); // Debug
-        const response = await fetch(`/api/recipes/${id}`);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        console.log('Response status:', response.status); // Debug
-        const data = await response.json();
-        console.log('Recipe data:', data); // Debug
-        setRecipeData(data);
-
-    }
-
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true)
-            await fetchRecipeData()
-            setLoading(false)
-        }
-        loadData()
-    }, [])
+    const { data: recipeData, loading } = useFetch(`/api/recipes/${id}`)
 
     const handleUpdate = () => {
         navigate(`/recipe/${id}/edit`);
     }
+
     const handleDownload = () => {
         alert("Función de descarga - próximamente");
     }
