@@ -1,179 +1,22 @@
-import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import { useContext } from 'react'
+import React from 'react'
 import { MainContainer } from '../components/layout/mainContainer'
 import { pdf } from '@react-pdf/renderer';
 import PlanningPDFDocument from '../components/pdf/PlanningPDFDocument';
 import { useUser } from '../../context/UserContext'
+import { usePlanning } from '../../hooks/usePlanning'
 
 export const RecipePlanner = () => {
     const { user } = useUser();
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState("")
-    const [planningData, setPlanningData] = useState()
-    const [modal, setModal] = useState(false);
-    const [slot, setSlot] = useState(null);
-    const [recipeData, setRecipeData] = useState([]);
-    const [modalRecipes, setModalRecipes] = useState([]);
-    const [modalSearch, setModalSearch] = useState("");
-    const [modalPage, setModalPage] = useState(1);
-    const [selectedRecipe, setSelectedRecipe] = useState(null)
-    const [pendingChanges, setPendingChanges] = useState({})
-    const modalLimit = 10;
 
-    const days = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO"]
-    const mealType = ["DESAYUNO", "ALMUERZO", "COMIDA", "MERIENDA", "CENA"]
-    const navigate = useNavigate()
-
-    const fetchData = (day, mealType, planData) => {
-        return planData[day][mealType] ? planData[day][mealType].receta_nombre : null;
-    }
-    const fetchRecipePlanningData = async () => {
-        try {
-            const recipeResponse = await fetch("/api/recipes");
-            const data = await recipeResponse.json();
-            const planningResponse = await fetch("/api/planning")
-            const validateData = (await planningResponse.json()).data;
-            setRecipeData(data.data.recetas)
-            setPlanningData(validateData)
-        } catch (error) {
-            setError("No se han podido cargar los datos")
-        }
-        setLoading(false)
-    }
-
-    const fetchModalRecipes = async () => {
-        const response = await fetch(`/api/recipes/search?searchType=recipe&searchTerm=${modalSearch}&page=${modalPage}&limit=${modalLimit}`);
-        const data = await response.json();
-        setModalRecipes(data);
-    }
-
-    const handleSlot = (dia, comida) => {
-        setSlot({
-            day: dia,
-            meal: comida
-        })
-        setModalSearch("");
-        setModalPage(1);
-        setSelectedRecipe(null);
-        setModal(true);
-    }
-    const handleFilter = async () => {
-        setLoading(true)
-        await fetchModalRecipes()
-        setLoading(false)
-    }
-
-    const handleSearchParam = () => {
-        setModalSearch("");
-    }
-
-    const handleRecipeSelect = (recipeId) => {
-        setSelectedRecipe(recipeId)
-    }
-
-    const handleAssignRecipe = () => {
-        if (selectedRecipe != null) {
-            const selectedRecipeData = modalRecipes.data.recipes.find(recipe => recipe.receta_id === selectedRecipe);
-            if (selectedRecipeData != undefined) {
-                const recipeName = selectedRecipeData.receta_nombre;
-                const key = `${slot.day}_${slot.meal}`;
-                setPendingChanges(prev => ({
-                    ...prev,
-                    [key]: {
-                        receta_id: selectedRecipe,
-                        receta_nombre: recipeName
-                    }
-                }))
-                setSelectedRecipe(null)
-                setModalSearch("")
-                setModalPage(1)
-                setModal(false)
-            }
-        }
-    }
-
-    const getSlotStatus = (day, mealType) => {
-        const key = `${day}_${mealType}`;
-        const hasServerData = fetchData(day, mealType, planningData);
-        const hasPendingChange = pendingChanges[key];
-
-        if (hasPendingChange) {
-            return 'pending';
-        } else if (hasServerData) {
-            return 'assigned';
-        } else {
-            return 'empty';
-        }
-    }
-
-    const handleClearSlot = () => {
-        const key = `${slot.day}_${slot.meal}`;
-
-        setPendingChanges(prev => {
-            const newChanges = {
-                ...prev,
-                [key]: {
-                    action: 'delete',
-                    day: slot.day,
-                    tipo_comida: slot.meal,
-                    receta_id: planningData[slot.day][slot.meal].receta_id
-                }
-            };
-            return newChanges;
-        });
-
-        setModal(false);
-    }
-
-    const handleSaveChanges = async () => {
-        setLoading(true);
-
-        for (const [key, assignment] of Object.entries(pendingChanges)) {
-            console.log('Processing assignment:', assignment);
-            if (assignment.action === 'delete') {
-                console.log('Sending delete request:', { day: assignment.day, tipo_comida: assignment.tipo_comida });
-                const response = await fetch('/api/planning/deleteRecipe', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        day: assignment.day,
-                        tipo_comida: assignment.tipo_comida,
-                        receta_id: planningData[slot.day][slot.meal].receta_id
-                    })
-                });
-
-                if (!response.ok) {
-                    alert(`Error eliminando receta`);
-                    setLoading(false);
-                    return;
-                }
-            } else {
-                const [day, tipo_comida] = key.split('_');
-                const response = await fetch('/api/planning/asignRecipe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        receta_id: assignment.receta_id,
-                        day: day,
-                        tipo_comida: tipo_comida
-                    })
-                });
-
-                if (!response.ok) {
-                    alert(`Error guardando ${assignment.receta_nombre}`);
-                    setLoading(false);
-                    return;
-                }
-            }
-        }
-
-        await fetchRecipePlanningData();
-        setPendingChanges({});
-        setLoading(false);
-        alert("Todos los cambios guardados correctamente");
-    }
+    const {
+        loading, planningData, modal, slot, modalRecipes,
+        modalSearch, modalPage, selectedRecipe, pendingChanges,
+        days, mealType,
+        setModal, setSelectedRecipe, setModalSearch, setModalPage,
+        handleSlot, handleSearchParam, handleRecipeSelect,
+        handleAssignRecipe, getSlotStatus, handleClearSlot,
+        handleSaveChanges, fetchData
+    } = usePlanning();
 
     const handleDownloadPDF = async () => {
         console.log('Usuario:', user);
@@ -200,20 +43,18 @@ export const RecipePlanner = () => {
             link.click();
             URL.revokeObjectURL(url);
         } catch (error) {
-            console.error('Error generando PDF:', error);
             alert('Error generando el PDF');
         }
     };
 
-    useEffect(() => {
-        if (modal) {
-            fetchModalRecipes()
+    const onSaveChanges = async () => {
+        const success = await handleSaveChanges();
+        if (success) {
+            alert("Todos los cambios guardados correctamente");
+        } else {
+            alert("Error al guardar cambios");
         }
-    }, [modal, modalPage])
-
-    useEffect(() => {
-        fetchRecipePlanningData()
-    }, [])
+    };
 
     return (
         <MainContainer title="Planificación semanal">
@@ -285,7 +126,7 @@ export const RecipePlanner = () => {
                         Descargar planificación
                     </button>
                     <button
-                        onClick={() => handleSaveChanges()}
+                        onClick={() => onSaveChanges()}
                         disabled={Object.keys(pendingChanges).length === 0}
                         className="flex-1 bg-brand-secondary/85 hover:bg-brand-secondary text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                     >
@@ -311,25 +152,6 @@ export const RecipePlanner = () => {
                                 placeholder="Buscar..."
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
                             />
-
-                            <button
-                                type='button'
-                                onClick={handleFilter}
-                                className="
-                    px-6 py-2 
-                    bg-brand-secondary/85 text-white 
-                    hover:bg-brand-secondary
-                    focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-brand-primary
-                    rounded-lg 
-                    safe-touch 
-                    transition-all duration-200 
-                    font-medium
-                    shadow-sm hover:shadow-md
-                    border border-white/10 hover:border-white/30
-                "
-                            >
-                                Filtrar
-                            </button>
                             <button
                                 type='button'
                                 onClick={handleSearchParam}
