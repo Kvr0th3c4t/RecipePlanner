@@ -1,10 +1,11 @@
 import React from 'react'
-import { MainContainer } from '../components/layout/mainContainer'
+import { MainContainer } from '../components/layout/mainContainer.jsx'
 import { pdf } from '@react-pdf/renderer';
-import PlanningPDFDocument from '../components/pdf/PlanningPDFDocument';
-import { useUser } from '../../context/UserContext'
-import { usePlanning } from '../../hooks/usePlanning'
-import { Loader } from '../components/ui/Loader';
+import PlanningPDFDocument from '../components/pdf/PlanningPDFDocument.jsx';
+import { useUser } from '../../context/UserContext.jsx'
+import { usePlanning } from '../../hooks/usePlanning.js'
+import { Loader } from '../components/ui/Loader.jsx';
+import { Button } from '../components/ui/Button.jsx';
 
 export const RecipePlanner = () => {
     const { user } = useUser();
@@ -122,22 +123,24 @@ export const RecipePlanner = () => {
                 )}
 
                 <div className='flex flex-row w-full gap-4 flex-shrink-0 sticky bottom-0'>
-                    <button
+                    <Button
+                        variant="secondary"
+                        fullWidth
                         onClick={() => handleDownloadPDF()}
-                        className="flex-1 bg-brand-primary/85 hover:bg-brand-primary text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                     >
                         Descargar planificación
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="primary"
+                        fullWidth
                         onClick={() => onSaveChanges()}
                         disabled={Object.keys(pendingChanges).length === 0}
-                        className="flex-1 bg-brand-secondary/85 hover:bg-brand-secondary text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
+                        </svg>}
+                    >
                         Guardar cambios
-                    </button>
+                    </Button>
 
                 </div>
             </div>
@@ -155,24 +158,12 @@ export const RecipePlanner = () => {
                                 placeholder="Buscar..."
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
                             />
-                            <button
-                                type='button'
+                            <Button
+                                variant="secondary"
                                 onClick={handleSearchParam}
-                                className="
-                    px-6 py-2 
-                    bg-brand-primary/65 text-white 
-                    hover:bg-brand-primary
-                    focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-brand-primary
-                    rounded-lg 
-                    safe-touch 
-                    transition-all duration-200 
-                    font-medium
-                    shadow-sm hover:shadow-md
-                    border border-white/10 hover:border-white/30
-                "
                             >
                                 Limpiar filtros
-                            </button>
+                            </Button>
                         </div>
 
                         <div className="flex-1 overflow-hidden">
@@ -197,62 +188,67 @@ export const RecipePlanner = () => {
                         {modalRecipes?.data?.recipes && (
                             <div className="flex-shrink-0 sticky bottom-0 bg-white pt-4 border-t border-gray-200">
                                 <div className="flex justify-center items-center gap-4 px-4 w-full">
-                                    <button
+                                    <Button
+                                        variant="ghost"
                                         onClick={() => setModalPage(prev => Math.max(prev - 1, 1))}
-                                        hidden={modalPage === 1}
-                                        className="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                                        disabled={modalPage === 1}
+                                        style={{ display: modalPage === 1 ? 'none' : 'flex' }}
                                     >
                                         Anterior
-                                    </button>
+                                    </Button>
 
                                     <span className="text-gray-700">
                                         Página {modalPage} de {modalRecipes.data.totalPages}
                                     </span>
 
-                                    <button
+                                    <Button
+                                        variant="ghost"
                                         onClick={() => setModalPage(prev => Math.min(prev + 1, modalRecipes.data.totalPages))}
-                                        hidden={modalPage === modalRecipes.data.totalPages}
-                                        className="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                                        disabled={modalPage === modalRecipes.data.totalPages}
+                                        style={{ display: modalPage === modalRecipes.data.totalPages ? 'none' : 'flex' }}
                                     >
                                         Siguiente
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}
 
                         <div className='flex flex-row w-full gap-4 flex-shrink-0 sticky bottom-0 bg-white pt-4'>
-                            <button
+                            <Button
+                                variant="ghost"
+                                fullWidth
                                 onClick={() => {
                                     setSelectedRecipe(null);
                                     setModal(false);
                                 }}
-                                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                </svg>
+                                </svg>}
+                            >
                                 Volver
-                            </button>
+                            </Button>
 
                             {getSlotStatus(slot.day, slot.meal) === 'assigned' && (
-                                <button
+                                <Button
+                                    variant="danger"
+                                    fullWidth
                                     onClick={() => handleClearSlot()}
-                                    className="flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                                 >
                                     Vaciar asignación
-                                </button>
+                                </Button>
                             )}
 
-                            <button
+                            <Button
+                                variant="primary"
+                                fullWidth
                                 onClick={() => handleAssignRecipe()}
                                 disabled={selectedRecipe == null}
-                                className="flex-1 bg-brand-secondary/85 hover:bg-brand-secondary text-white px-6 py-2.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                </svg>
+                                </svg>}
+                            >
                                 Asignar receta
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

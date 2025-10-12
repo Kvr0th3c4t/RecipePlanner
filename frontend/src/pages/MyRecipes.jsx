@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MainContainer } from '../components/layout/mainContainer';
 import { useRecipeSearch } from '../../hooks/useRecipeSearch.js';
 import { Loader } from '../components/ui/Loader.jsx';
+import { Button } from '../components/ui/Button.jsx';
 
 export const MyRecipes = () => {
 
@@ -70,42 +71,18 @@ export const MyRecipes = () => {
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
                                 />
 
-                                <button
-                                    type='button'
+                                <Button
+                                    variant="primary"
                                     onClick={handleFilter}
-                                    className="
-                                px-6 py-2 
-                                bg-brand-secondary/85 text-white 
-                                hover:bg-brand-secondary
-                                focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-brand-primary
-                                rounded-lg 
-                                safe-touch 
-                                transition-all duration-200 
-                                font-medium
-                                shadow-sm hover:shadow-md
-                                border border-white/10 hover:border-white/30
-                            "
                                 >
                                     Filtrar
-                                </button>
-                                <button
-                                    type='button'
+                                </Button>
+                                <Button
+                                    variant="secondary"
                                     onClick={clearFilters}
-                                    className="
-                                px-6 py-2 
-                                bg-brand-primary/65 text-white 
-                                hover:bg-brand-primary
-                                focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-brand-primary
-                                rounded-lg 
-                                safe-touch 
-                                transition-all duration-200 
-                                font-medium
-                                shadow-sm hover:shadow-md
-                                border border-white/10 hover:border-white/30
-                            "
                                 >
                                     Limpiar filtros
-                                </button>
+                                </Button>
                             </div>
                         </section>
 
@@ -151,25 +128,28 @@ export const MyRecipes = () => {
                                                     <div className="p-3">
                                                         <h3 className="font-semibold text-xs mb-2">{receta.receta_nombre}</h3>
 
-                                                        <div className="flex justify-center items-center gap-2">
-                                                            <button
+                                                        <div className="grid grid-cols-3 gap-2 mt-2">
+                                                            <Button
+                                                                variant="link"
+                                                                size="sm"
                                                                 onClick={() => handleDetailView(receta.receta_id)}
-                                                                className="bg-blue-400 text-white rounded text-xs hover:bg-blue-600 transition-colors w-25 px-2 py-1"
                                                             >
                                                                 Ver
-                                                            </button>
-                                                            <button
+                                                            </Button>
+                                                            <Button
+                                                                variant="warning"
+                                                                size="sm"
                                                                 onClick={() => handleUpdate(receta.receta_id)}
-                                                                className="bg-yellow-400 text-white rounded text-xs hover:bg-yellow-600 transition-colors w-25 px-2 py-1"
                                                             >
                                                                 Editar
-                                                            </button>
-                                                            <button
+                                                            </Button>
+                                                            <Button
+                                                                variant="danger"
+                                                                size="sm"
                                                                 onClick={() => handleDelete(receta.receta_id)}
-                                                                className="bg-red-400 text-white rounded text-xs hover:bg-red-600 transition-colors w-25 px-2 py-1"
                                                             >
                                                                 Eliminar
-                                                            </button>
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -183,25 +163,25 @@ export const MyRecipes = () => {
                         {recipes && (
                             <div className="sticky bottom-0z-10 px-0 py-5 w-full">
                                 <div className="flex justify-center items-center gap-4 px-4 w-full">
-                                    <button
+                                    <Button
+                                        variant="ghost"
                                         onClick={prevPage}
-                                        hidden={currentPage === 1}
-                                        className="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                                        style={{ display: currentPage === 1 ? 'none' : 'inline-flex' }}
                                     >
                                         Anterior
-                                    </button>
+                                    </Button>
 
                                     <span className="text-gray-700">
                                         Página {currentPage} de {totalPages}
                                     </span>
 
-                                    <button
+                                    <Button
+                                        variant="ghost"
                                         onClick={nextPage}
-                                        hidden={currentPage === totalPages}
-                                        className="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                                        style={{ display: currentPage === totalPages ? 'none' : 'inline-flex' }}
                                     >
                                         Siguiente
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}
