@@ -4,6 +4,7 @@ import { MainContainer } from '../components/layout/mainContainer';
 import { useRecipeSearch } from '../../hooks/useRecipeSearch.js';
 import { Loader } from '../components/ui/Loader.jsx';
 import { Button } from '../components/ui/Button.jsx';
+import { Pagination } from '../components/ui/Pagination.jsx';
 
 export const MyRecipes = () => {
 
@@ -161,29 +162,12 @@ export const MyRecipes = () => {
                         </main>
 
                         {recipes && (
-                            <div className="sticky bottom-0z-10 px-0 py-5 w-full">
-                                <div className="flex justify-center items-center gap-4 px-4 w-full">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={prevPage}
-                                        style={{ display: currentPage === 1 ? 'none' : 'inline-flex' }}
-                                    >
-                                        Anterior
-                                    </Button>
-
-                                    <span className="text-gray-700">
-                                        Página {currentPage} de {totalPages}
-                                    </span>
-
-                                    <Button
-                                        variant="ghost"
-                                        onClick={nextPage}
-                                        style={{ display: currentPage === totalPages ? 'none' : 'inline-flex' }}
-                                    >
-                                        Siguiente
-                                    </Button>
-                                </div>
-                            </div>
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onNext={nextPage}
+                                onPrev={prevPage}
+                            />
                         )}
                     </>
                 )}

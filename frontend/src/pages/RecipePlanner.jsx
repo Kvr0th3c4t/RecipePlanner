@@ -6,6 +6,7 @@ import { useUser } from '../../context/UserContext.jsx'
 import { usePlanning } from '../../hooks/usePlanning.js'
 import { Loader } from '../components/ui/Loader.jsx';
 import { Button } from '../components/ui/Button.jsx';
+import { Pagination } from '../components/ui/Pagination.jsx';
 
 export const RecipePlanner = () => {
     const { user } = useUser();
@@ -186,31 +187,12 @@ export const RecipePlanner = () => {
                         </div>
 
                         {modalRecipes?.data?.recipes && (
-                            <div className="flex-shrink-0 sticky bottom-0 bg-white pt-4 border-t border-gray-200">
-                                <div className="flex justify-center items-center gap-4 px-4 w-full">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => setModalPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={modalPage === 1}
-                                        style={{ display: modalPage === 1 ? 'none' : 'flex' }}
-                                    >
-                                        Anterior
-                                    </Button>
-
-                                    <span className="text-gray-700">
-                                        Página {modalPage} de {modalRecipes.data.totalPages}
-                                    </span>
-
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => setModalPage(prev => Math.min(prev + 1, modalRecipes.data.totalPages))}
-                                        disabled={modalPage === modalRecipes.data.totalPages}
-                                        style={{ display: modalPage === modalRecipes.data.totalPages ? 'none' : 'flex' }}
-                                    >
-                                        Siguiente
-                                    </Button>
-                                </div>
-                            </div>
+                            <Pagination
+                                currentPage={modalPage}
+                                totalPages={modalRecipes.data.totalPages}
+                                onNext={() => setModalPage(prev => Math.min(prev + 1, modalRecipes.data.totalPages))}
+                                onPrev={() => setModalPage(prev => Math.max(prev - 1, 1))}
+                            />
                         )}
 
                         <div className='flex flex-row w-full gap-4 flex-shrink-0 sticky bottom-0 bg-white pt-4'>
