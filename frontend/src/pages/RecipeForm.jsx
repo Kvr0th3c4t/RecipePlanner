@@ -4,6 +4,7 @@ import { useRecipeForm } from '../../hooks/useRecipeForm';
 import { MainContainer } from '../components/layout/mainContainer';
 import { Loader } from '../components/ui/Loader.jsx';
 import { Button } from '../components/ui/Button.jsx';
+import toast from 'react-hot-toast';
 
 export const RecipeForm = () => {
 
@@ -31,10 +32,10 @@ export const RecipeForm = () => {
     e.preventDefault();
     const success = await handleSubmit();
     if (success) {
-      alert(mode === "create" ? "Receta creada correctamente" : "Receta actualizada correctamente");
+      toast.success(mode === "create" ? "Receta creada correctamente" : "Receta actualizada correctamente");
       navigate('/myRecipes');
     } else {
-      alert("Error al procesar la receta");
+      toast.error("Error al procesar la receta");
     }
   };
 

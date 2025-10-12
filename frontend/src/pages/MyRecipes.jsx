@@ -5,6 +5,7 @@ import { useRecipeSearch } from '../../hooks/useRecipeSearch.js';
 import { Loader } from '../components/ui/Loader.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Pagination } from '../components/ui/Pagination.jsx';
+import toast from 'react-hot-toast';
 
 export const MyRecipes = () => {
 
@@ -36,13 +37,13 @@ export const MyRecipes = () => {
                 });
 
                 if (response.ok) {
-                    alert("Receta eliminada correctamente")
+                    toast.success("Receta eliminada correctamente");
                     handleFilter();
                 } else {
-                    alert("Error al borrar la receta")
+                    toast.error("Error al borrar la receta");
                 }
             } catch (error) {
-                alert("Error al eliminar la receta");
+                toast.error("Error al eliminar la receta");
             }
         }
     }

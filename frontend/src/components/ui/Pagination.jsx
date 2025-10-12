@@ -7,7 +7,7 @@ export const Pagination = ({
     onPrev
 }) => {
     return (
-        <div className="flex justify-center items-center gap-4">
+        <div className="flex justify-center items-center gap-4 mb-5">
             <Button
                 variant="ghost"
                 onClick={onPrev}

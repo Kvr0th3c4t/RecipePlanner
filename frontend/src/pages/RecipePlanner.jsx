@@ -22,10 +22,9 @@ export const RecipePlanner = () => {
     } = usePlanning();
 
     const handleDownloadPDF = async () => {
-        console.log('Usuario:', user);
 
         if (!planningData) {
-            alert('No hay datos de planificación cargados');
+            toast.error('No hay datos de planificación cargados');
             return;
         }
 
@@ -46,16 +45,16 @@ export const RecipePlanner = () => {
             link.click();
             URL.revokeObjectURL(url);
         } catch (error) {
-            alert('Error generando el PDF');
+            toast.error('Error generando el PDF');
         }
     };
 
     const onSaveChanges = async () => {
         const success = await handleSaveChanges();
         if (success) {
-            alert("Todos los cambios guardados correctamente");
+            toast.success("Todos los cambios guardados correctamente");
         } else {
-            alert("Error al guardar cambios");
+            toast.error("Error al guardar cambios");
         }
     };
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { useFetch } from "./useFetch";
+import toast from "react-hot-toast";
 
 export const usePlanning = () => {
   const [modal, setModal] = useState(false);
@@ -68,6 +69,7 @@ export const usePlanning = () => {
             receta_nombre: recipeName,
           },
         }));
+        toast.success(`${recipeName} asignada para ${slot.meal}`);
         setSelectedRecipe(null);
         setModalSearch("");
         setModalPage(1);
@@ -110,7 +112,7 @@ export const usePlanning = () => {
       };
       return newChanges;
     });
-
+    toast.info("Receta marcada para eliminar");
     setModal(false);
   }, [slot, planningData]);
 

@@ -18,7 +18,7 @@ export const RecipeDetail = () => {
     }
 
     const handleDownload = () => {
-        alert("Función de descarga - próximamente");
+        toast("Función de descarga - próximamente", { icon: '🚀' });
     }
 
     return (
