@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRecipeForm } from '../../hooks/useRecipeForm';
 import { MainContainer } from '../components/layout/mainContainer';
+import { Loader } from '../components/ui/Loader.jsx';
 
 export const RecipeForm = () => {
 
@@ -39,9 +40,7 @@ export const RecipeForm = () => {
   return (
     <MainContainer title={mode === "create" ? "Nueva receta" : "Editar receta"}>
       {loading ? (
-        <div className="flex justify-center items-center h-full">
-          <div className="text-lg text-gray-600">Cargando...</div>
-        </div>
+        <Loader text="Cargando formulario..." subtitle={null} />
       ) : (
         <div className='h-full overflow-hidden'>
           <form onSubmit={onSubmit} className='max-w-7xl mx-auto p-6 h-full flex flex-col'>

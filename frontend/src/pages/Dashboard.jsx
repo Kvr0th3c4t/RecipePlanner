@@ -4,6 +4,7 @@ import { EmptyStateRecipes } from '../components/ui/EmptyStateRecipes.jsx';
 import { EmptyStatePlanning } from '../components/ui/EmptyStatePlanning.jsx';
 import { PlanningState } from '../components/ui/PlanningState.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
+import { Loader } from '../components/ui/Loader.jsx';
 
 
 export const Dashboard = () => {
@@ -23,7 +24,7 @@ export const Dashboard = () => {
     return (
         <MainContainer title="Panel de control">
             {loading ? (
-                <div>"Cargando"</div>
+                <Loader text='Cargando...' subtitle='Preparando tu panel...' />
             ) : (
                 <div>
                     {!recipeData?.data ? (

@@ -4,6 +4,7 @@ import { pdf } from '@react-pdf/renderer';
 import PlanningPDFDocument from '../components/pdf/PlanningPDFDocument';
 import { useUser } from '../../context/UserContext'
 import { usePlanning } from '../../hooks/usePlanning'
+import { Loader } from '../components/ui/Loader';
 
 export const RecipePlanner = () => {
     const { user } = useUser();
@@ -59,7 +60,9 @@ export const RecipePlanner = () => {
     return (
         <MainContainer title="Planificación semanal">
             <div className='relative h-full max-w-7xl p-10 flex flex-col gap-4'>
-                {!loading && (
+                {loading ? (
+                    <Loader text="Cargando planificación..." subtitle="Organizando tu semana..." />
+                ) : (
                     <div className="flex-1 min-h-0">
                         <section className='grid grid-cols-8 grid-rows-7 gap-x-5 gap-y-2 h-full'>
                             <div></div>

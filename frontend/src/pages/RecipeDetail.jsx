@@ -3,6 +3,7 @@ import { useFetch } from '../../hooks/useFetch.js';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainContainer } from '../components/layout/mainContainer';
+import { Loader } from '../components/ui/Loader.jsx';
 
 export const RecipeDetail = () => {
     const { user } = useUser();
@@ -22,9 +23,7 @@ export const RecipeDetail = () => {
     return (
         <MainContainer title="Detalle de receta">
             {loading ? (
-                <div className="flex justify-center items-center h-full">
-                    <div className="text-lg text-gray-600">Cargando receta...</div>
-                </div>
+                <Loader text="Cargando receta..." subtitle={null} />
             ) : recipeData ? (
                 <div className='h-full overflow-hidden'>
                     <main className='max-w-7xl mx-auto p-6 h-full flex flex-col'>

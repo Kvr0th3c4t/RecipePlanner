@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom';
 import { MainContainer } from '../components/layout/mainContainer';
 import { useRecipeSearch } from '../../hooks/useRecipeSearch.js';
+import { Loader } from '../components/ui/Loader.jsx';
 
 export const MyRecipes = () => {
 
@@ -48,9 +49,7 @@ export const MyRecipes = () => {
         <MainContainer title="Mis recetas">
             <div className="h-full flex flex-col">
                 {loading ? (
-                    <div className="flex justify-center items-center h-full">
-                        <div>"Cargando"</div>
-                    </div>
+                    <Loader text="Cargando recetas..." subtitle="Preparando tus creaciones..." />
                 ) : (
                     <>
                         <section className='sticky top-0 z-10 px-0 py-5 w-full'>
