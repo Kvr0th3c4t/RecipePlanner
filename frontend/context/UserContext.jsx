@@ -1,5 +1,6 @@
 import React from "react"
-import { useEffect, useState, createContext, useContext } from "react"
+import { useEffect, useState, createContext, useContext, useRef } from "react"
+import toast from "react-hot-toast"
 
 export const UserContext = createContext({
     user: null,
@@ -10,7 +11,6 @@ export const UserContext = createContext({
     checkAuth: () => { }
 })
 
-
 export const UserProvider = ({ children }) => {
     const [estado, setEstado] = useState({
         user: null,
@@ -19,11 +19,50 @@ export const UserProvider = ({ children }) => {
         sidebarExpanded: true,
     });
 
+    const sessionCheckInterval = useRef(null);
+    const hasShownExpiredToast = useRef(false);
+
     useEffect(() => {
         checkAuth();
+
+        const sessionExpiredMessage = sessionStorage.getItem('sessionExpired');
+        if (sessionExpiredMessage) {
+            toast.error(sessionExpiredMessage, {
+                duration: 5000,
+                icon: '🔒',
+            });
+            sessionStorage.removeItem('sessionExpired');
+        }
     }, []);
 
+    useEffect(() => {
+        if (estado.isAuthenticated) {
+            sessionCheckInterval.current = setInterval(() => {
+                checkSessionStatus();
+            }, 10000);
+
+            return () => {
+                if (sessionCheckInterval.current) {
+                    clearInterval(sessionCheckInterval.current);
+                }
+            };
+        }
+    }, [estado.isAuthenticated]);
+
+    const checkSessionStatus = async () => {
+        try {
+            const response = await fetch("/api/profile");
+
+            if (!response.ok) {
+                handleSessionExpired();
+            }
+        } catch (error) {
+            console.error('Error checking session:', error);
+        }
+    };
+
     const login = (user) => {
+        hasShownExpiredToast.current = false;
         setEstado({
             user: {
                 username: user.username,
@@ -33,7 +72,11 @@ export const UserProvider = ({ children }) => {
             isLoading: false
         })
     }
+
     const logout = async () => {
+        if (sessionCheckInterval.current) {
+            clearInterval(sessionCheckInterval.current);
+        }
 
         try {
             const response = await fetch('/api/logout', {
@@ -45,6 +88,7 @@ export const UserProvider = ({ children }) => {
                     isAuthenticated: false,
                     isLoading: false,
                 })
+                window.location.href = '/';
                 return true
             } else {
                 return false
@@ -52,7 +96,25 @@ export const UserProvider = ({ children }) => {
         } catch (error) {
             return false
         }
+    }
 
+    const handleSessionExpired = () => {
+        if (hasShownExpiredToast.current) return;
+        hasShownExpiredToast.current = true;
+
+        if (sessionCheckInterval.current) {
+            clearInterval(sessionCheckInterval.current);
+        }
+
+        sessionStorage.setItem('sessionExpired', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+
+        setEstado({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+        });
+
+        window.location.href = '/';
     }
 
     const toggleSidebar = () => {
@@ -101,6 +163,5 @@ export const UserProvider = ({ children }) => {
 
 export const useUser = () => {
     const context = useContext(UserContext);
-
     return context;
 };
