@@ -2,6 +2,7 @@ import React from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../../../context/UserContext'
+import { Input } from '../../components/ui/Inputs/Input.jsx'
 
 export const LoginForm = () => {
     const { login } = useUser()
@@ -51,36 +52,67 @@ export const LoginForm = () => {
             setLoading(false);
         }
     }
+
     const handleChange = (e) => {
         setData({ ...data, [e.target.name]: e.target.value });
     }
+
     return (
         <section className='p-10'>
-            <form action="" onSubmit={handleSubmit} className='flex flex-col justify-center items-center gap-5 py-20'>
-                <label htmlFor="email">Email</label>
-                <input className='' name='email' id='email' placeholder='test@hotmail.com' type='text' value={data.email} onChange={handleChange}></input>
-                <label htmlFor='contraseña'>Contraseña</label>
-                <input name="contraseña" id='contraseña' placeholder='Ingrese la contraseña' type='password' value={data.contraseña} onChange={handleChange}></input>
+            <form onSubmit={handleSubmit} className='flex flex-col justify-center items-center gap-5 py-20'>
+
+                <Input
+                    type="email"
+                    label="Email"
+                    name="email"
+                    id="email"
+                    placeholder="test@hotmail.com"
+                    value={data.email}
+                    onChange={handleChange}
+                    error={error && error.includes("email") ? error : null}
+                    disabled={loading}
+                    fullWidth
+                />
+
+                <Input
+                    type="password"
+                    label="Contraseña"
+                    name="contraseña"
+                    id="contraseña"
+                    placeholder="Ingrese la contraseña"
+                    value={data.contraseña}
+                    onChange={handleChange}
+                    disabled={loading}
+                    fullWidth
+                />
+
                 <button
+                    type="submit"
+                    disabled={loading}
                     className="
-                                 bg-brand-secondary/85 text-white 
-                                hover:bg-brand-secondary 
-                                focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 focus:ring-offset-2
-                                px-2 py-1 
-                                rounded-lg 
-                                safe-touch 
-                                transition-colors duration-200 
-                                font-medium text-lg
-                                shadow-lg hover:shadow-xl
-                                flex items-center gap-2
-                                w-full max-w-[100px]
-                                justify-center
-                                backdrop-blur-sm
-                            "
-                >Enviar
+                        bg-brand-secondary/85 text-white 
+                        hover:bg-brand-secondary 
+                        focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 focus:ring-offset-2
+                        px-2 py-1 
+                        rounded-lg 
+                        safe-touch 
+                        transition-colors duration-200 
+                        font-medium text-lg
+                        shadow-lg hover:shadow-xl
+                        flex items-center gap-2
+                        w-full max-w-[100px]
+                        justify-center
+                        backdrop-blur-sm
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                    "
+                >
+                    {loading ? 'Enviando...' : 'Enviar'}
                 </button>
             </form>
-            <span>{error}</span>
+
+            {error && !error.includes("email") && (
+                <span className="text-red-600 text-sm font-medium text-center block">{error}</span>
+            )}
         </section>
     )
 }

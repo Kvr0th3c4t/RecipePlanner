@@ -7,6 +7,8 @@ import { usePlanning } from '../../hooks/usePlanning.js'
 import { Loader } from '../components/ui/Loader.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Pagination } from '../components/ui/Pagination.jsx';
+import { SearchInput } from '../components/ui/Inputs/SearchInput.jsx';
+import toast from 'react-hot-toast';
 
 export const RecipePlanner = () => {
     const { user } = useUser();
@@ -91,7 +93,7 @@ export const RecipePlanner = () => {
                                         return (
 
                                             <div key={`${comida}-${dia}`} onClick={() => handleSlot(dia, comida)}
-                                                className={`py-1 px-2 text-center rounded-lg transition-all duration-300 flex items-center justify-center border-2 ${slotStyles[slotStatus]}`}>
+                                                className={`py-1 px-2 text-center rounded-lg transition-all duration-300 flex items-center justify-center border-2 cursor-pointer ${slotStyles[slotStatus]}`}>
                                                 {(() => {
                                                     const key = `${dia}_${comida}`;
                                                     const displayText = pendingChanges[key]
@@ -122,6 +124,7 @@ export const RecipePlanner = () => {
                     </div>
                 )}
 
+                {/* BOTONES PRINCIPALES */}
                 <div className='flex flex-row w-full gap-4 flex-shrink-0 sticky bottom-0'>
                     <Button
                         variant="secondary"
@@ -145,18 +148,18 @@ export const RecipePlanner = () => {
                 </div>
             </div>
 
+            {/* MODAL DE ASIGNACIÓN */}
             {modal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-10">
                     <div className="w-full h-full bg-white p-6 rounded-lg flex flex-col">
                         <h1 className='mb-5 flex-shrink-0'>Asignación de receta para <span className='text-brand-primary/85'>{slot.meal}</span> del  <span className='text-brand-secondary/85'>{slot.day}</span></h1>
 
+                        {/* BUSCADOR DEL MODAL */}
                         <div className="flex gap-4 px-4 w-full mb-5 flex-shrink-0">
-                            <input
-                                type="text"
+                            <SearchInput
+                                placeholder="Buscar..."
                                 value={modalSearch}
                                 onChange={(e) => setModalSearch(e.target.value)}
-                                placeholder="Buscar..."
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
                             />
                             <Button
                                 variant="secondary"
@@ -166,6 +169,7 @@ export const RecipePlanner = () => {
                             </Button>
                         </div>
 
+                        {/* GRID DE RECETAS */}
                         <div className="flex-1 overflow-hidden">
                             <div className="grid grid-cols-5 gap-5 h-full overflow-y-auto">
                                 {modalRecipes?.data?.recipes?.map((recipe) => (
@@ -185,6 +189,7 @@ export const RecipePlanner = () => {
                             </div>
                         </div>
 
+                        {/* PAGINACIÓN DEL MODAL */}
                         {modalRecipes?.data?.recipes && (
                             <Pagination
                                 currentPage={modalPage}
@@ -194,6 +199,7 @@ export const RecipePlanner = () => {
                             />
                         )}
 
+                        {/* BOTONES DEL MODAL */}
                         <div className='flex flex-row w-full gap-4 flex-shrink-0 sticky bottom-0 bg-white pt-4'>
                             <Button
                                 variant="ghost"

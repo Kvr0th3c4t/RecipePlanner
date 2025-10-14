@@ -4,6 +4,12 @@ import { useRecipeForm } from '../../hooks/useRecipeForm';
 import { MainContainer } from '../components/layout/mainContainer';
 import { Loader } from '../components/ui/Loader.jsx';
 import { Button } from '../components/ui/Button.jsx';
+
+import { Input } from '../components/ui/Inputs/Input.jsx';
+import { NumberInput } from '../components/ui/Inputs/NumberInput.jsx';
+import { Select } from '../components/ui/Inputs/Select.jsx';
+import { Autocomplete } from '../components/ui/Inputs/Autocomplete.jsx';
+
 import toast from 'react-hot-toast';
 
 export const RecipeForm = () => {
@@ -48,12 +54,13 @@ export const RecipeForm = () => {
           <form onSubmit={onSubmit} className='max-w-7xl mx-auto p-6 h-full flex flex-col'>
 
             <div className='mb-8 flex-shrink-0'>
-              <input
-                type="text"
+              <Input
+                variant="large"
                 value={formData?.receta_nombre || ''}
                 onChange={(e) => handleFormDataChange('receta_nombre', e.target.value)}
                 placeholder="Nombre de la receta..."
-                className="text-4xl md:text-5xl font-light text-gray-900 mb-4 pt-2 leading-tight bg-transparent border-none outline-none w-full focus:bg-gray-50 px-2 py-1 rounded"
+                fullWidth
+                className="mb-4"
               />
               <div className='w-full h-0.5 bg-brand-primary'></div>
             </div>
@@ -61,9 +68,6 @@ export const RecipeForm = () => {
             <div className='grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 min-h-0'>
 
               <div className='lg:col-span-3 flex flex-col min-h-0'>
-
-
-
                 <div className='flex-1 flex flex-col min-h-0'>
                   <h2 className='text-2xl font-medium text-gray-700 mb-6 border-b border-gray-200 pb-2 flex-shrink-0'>
                     Ingredientes
@@ -79,53 +83,38 @@ export const RecipeForm = () => {
                             {index + 1}
                           </span>
 
-                          <div className='flex-1 relative'>
-                            <input
-                              type="text"
-                              value={ingrediente.nombreIngrediente}
-                              onChange={(e) => {
-                                handleIngredientChange(index, 'nombreIngrediente', e.target.value);
-                                searchIngredients(e.target.value, index);
-                              }}
-                              placeholder="Buscar ingrediente..."
-                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                            />
-
-                            {showSuggestions[index] && searchResults[index]?.length > 0 && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                {searchResults[index].map(suggestion => (
-                                  <div
-                                    key={suggestion.ingrediente_id}
-                                    onClick={() => selectIngredient(suggestion, index)}
-                                    className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                  >
-                                    {suggestion.ingrediente_nombre}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          <input
-                            type="number"
-                            value={ingrediente.cantidad}
-                            onChange={(e) => handleIngredientChange(index, 'cantidad', e.target.value)}
-                            placeholder="Cantidad"
-                            className="w-20 px-2 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-brand-primary text-center"
+                          <Autocomplete
+                            placeholder="Buscar ingrediente..."
+                            value={ingrediente.nombreIngrediente}
+                            onChange={(e) => {
+                              handleIngredientChange(index, 'nombreIngrediente', e.target.value);
+                              searchIngredients(e.target.value, index);
+                            }}
+                            suggestions={searchResults[index]?.map(s => ({
+                              id: s.ingrediente_id,
+                              label: s.ingrediente_nombre,
+                              data: s
+                            })) || []}
+                            showSuggestions={showSuggestions[index]}
+                            onSuggestionClick={(suggestion) => selectIngredient(suggestion.data, index)}
                           />
 
-                          <select
+                          <NumberInput
+                            placeholder="Cantidad"
+                            value={ingrediente.cantidad}
+                            onChange={(e) => handleIngredientChange(index, 'cantidad', e.target.value)}
+                          />
+
+                          <Select
                             value={ingrediente.unidad_id}
                             onChange={(e) => handleIngredientChange(index, 'unidad_id', e.target.value)}
-                            className="w-24 px-2 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                          >
-                            <option value="">Unidad</option>
-                            {units?.map(unit => (
-                              <option key={unit.unidad_id} value={unit.unidad_id}>
-                                {unit.abreviatura}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="Unidad"
+                            options={units?.map(unit => ({
+                              value: unit.unidad_id,
+                              label: unit.abreviatura
+                            })) || []}
+                            className="w-24"
+                          />
 
                           <span className='text-xs text-gray-500 w-20 text-center flex-shrink-0'>
                             {ingrediente.categoria}
@@ -176,16 +165,14 @@ export const RecipeForm = () => {
                   </div>
 
                   <div className='mt-4 bg-gray-50 p-4 rounded-lg'>
-                    <h3 className='font-semibold text-gray-700 mb-3'>URL de la foto</h3>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={formData?.receta_foto || ''}
-                        onChange={(e) => handleFormDataChange('receta_foto', e.target.value)}
-                        placeholder="https://ejemplo.com/foto.jpg"
-                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                      />
-                    </div>
+                    <Input
+                      label="URL de la foto"
+                      type="url"
+                      value={formData?.receta_foto || ''}
+                      onChange={(e) => handleFormDataChange('receta_foto', e.target.value)}
+                      placeholder="https://ejemplo.com/foto.jpg"
+                      fullWidth
+                    />
                   </div>
                 </div>
               </div>

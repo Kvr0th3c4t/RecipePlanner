@@ -5,10 +5,11 @@ import { useRecipeSearch } from '../../hooks/useRecipeSearch.js';
 import { Loader } from '../components/ui/Loader.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Pagination } from '../components/ui/Pagination.jsx';
+import { Select } from '../components/ui/Inputs/Select.jsx';
+import { SearchInput } from '../components/ui/Inputs/SearchInput.jsx';
 import toast from 'react-hot-toast';
 
 export const MyRecipes = () => {
-
 
     const navigate = useNavigate();
 
@@ -55,22 +56,22 @@ export const MyRecipes = () => {
                     <Loader text="Cargando recetas..." subtitle="Preparando tus creaciones..." />
                 ) : (
                     <>
+                        {/* BARRA DE BÚSQUEDA */}
                         <section className='sticky top-0 z-10 px-0 py-5 w-full'>
                             <div className="flex gap-4 px-4 w-full">
-                                <select name="" value={searchType} onChange={(e) => setSearchType(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary">
-                                    <option value="recipe">
-                                        Nombre de receta
-                                    </option>
-                                    <option value="ingredient">
-                                        Nombre de ingrediente
-                                    </option>
-                                </select>
-                                <input
-                                    type="text"
+                                <Select
+                                    value={searchType}
+                                    onChange={(e) => setSearchType(e.target.value)}
+                                    options={[
+                                        { value: "recipe", label: "Nombre de receta" },
+                                        { value: "ingredient", label: "Nombre de ingrediente" }
+                                    ]}
+                                />
+
+                                <SearchInput
+                                    placeholder="Buscar..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Buscar..."
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
                                 />
 
                                 <Button
@@ -79,6 +80,7 @@ export const MyRecipes = () => {
                                 >
                                     Filtrar
                                 </Button>
+
                                 <Button
                                     variant="secondary"
                                     onClick={clearFilters}
@@ -88,6 +90,7 @@ export const MyRecipes = () => {
                             </div>
                         </section>
 
+                        {/* GRID DE RECETAS */}
                         <main className="flex-1 overflow-y-auto justify-center items-center px-4 py-4">
                             {!recipes || recipes.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center">
@@ -162,6 +165,7 @@ export const MyRecipes = () => {
                             )}
                         </main>
 
+                        {/* PAGINACIÓN */}
                         {recipes && (
                             <Pagination
                                 currentPage={currentPage}
