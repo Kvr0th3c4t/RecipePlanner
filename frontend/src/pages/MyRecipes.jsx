@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button.jsx';
 import { Pagination } from '../components/ui/Pagination.jsx';
 import { Select } from '../components/ui/Inputs/Select.jsx';
 import { SearchInput } from '../components/ui/Inputs/SearchInput.jsx';
+import { fetchWithAuth } from '../../hooks/fetchWithAuth.js';
 import toast from 'react-hot-toast';
 
 export const MyRecipes = () => {
@@ -33,7 +34,7 @@ export const MyRecipes = () => {
 
         if (confirmDelete) {
             try {
-                const response = await fetch(`/api/recipes/${id}`, {
+                const response = await fetchWithAuth(`/api/recipes/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -44,7 +45,9 @@ export const MyRecipes = () => {
                     toast.error("Error al borrar la receta");
                 }
             } catch (error) {
-                toast.error("Error al eliminar la receta");
+                if (error.message !== 'SESSION_EXPIRED') {
+                    toast.error("Error al eliminar la receta");
+                }
             }
         }
     }
@@ -56,7 +59,6 @@ export const MyRecipes = () => {
                     <Loader text="Cargando recetas..." subtitle="Preparando tus creaciones..." />
                 ) : (
                     <>
-                        {/* BARRA DE BÚSQUEDA */}
                         <section className='sticky top-0 z-10 px-0 py-5 w-full'>
                             <div className="flex gap-4 px-4 w-full">
                                 <Select
@@ -90,7 +92,6 @@ export const MyRecipes = () => {
                             </div>
                         </section>
 
-                        {/* GRID DE RECETAS */}
                         <main className="flex-1 overflow-y-auto justify-center items-center px-4 py-4">
                             {!recipes || recipes.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center">
@@ -165,7 +166,6 @@ export const MyRecipes = () => {
                             )}
                         </main>
 
-                        {/* PAGINACIÓN */}
                         {recipes && (
                             <Pagination
                                 currentPage={currentPage}

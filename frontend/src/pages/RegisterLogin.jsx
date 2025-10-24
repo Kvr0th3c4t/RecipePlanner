@@ -8,13 +8,11 @@ import { LoginForm } from "../components/auth/LoginForm.jsx"
 import { RegisterForm } from '../components/auth/RegisterForm.jsx'
 
 export const RegisterLogin = () => {
-    //Estados para redirección de valores no válidos
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams()
     const [activeTab, setActiveTab] = useState(null);
     const navigate = useNavigate();
 
-    //Referencias para animaciones
     const loginFormRef = useRef()
     const registerFormRef = useRef()
     const loginImageRef = useRef()
@@ -99,7 +97,7 @@ export const RegisterLogin = () => {
         }
     }
 
-    return loading ? <Loader /> : (
+    return (
         <div className='w-screen h-screen flex justify-center bg-brand-primary/90 overflow-hidden'>
             <div className="absolute top-4 left-0 right-0 px-10 flex z-50">
                 <button

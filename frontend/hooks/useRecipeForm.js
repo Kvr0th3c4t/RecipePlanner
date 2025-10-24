@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { useFetch } from "./useFetch";
+import { useFetch } from "./useFetch.js";
+import { fetchWithAuth } from "./fetchWithAuth.js";
 
 export const useRecipeForm = (recipeId) => {
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,7 @@ export const useRecipeForm = (recipeId) => {
       )
     );
   }, []);
+
   const selectIngredient = useCallback(
     (suggestion, index) => {
       handleIngredientChange(
@@ -80,7 +82,7 @@ export const useRecipeForm = (recipeId) => {
   }, []);
 
   const createRecipe = useCallback(async () => {
-    const recipeResponse = await fetch("/api/recipes", {
+    const recipeResponse = await fetchWithAuth("/api/recipes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -99,7 +101,7 @@ export const useRecipeForm = (recipeId) => {
     );
 
     for (const ingredient of validIngredients) {
-      const ingredientResponse = await fetch(
+      const ingredientResponse = await fetchWithAuth(
         `/api/recipes/${newRecipeId}/ingredients`,
         {
           method: "POST",
@@ -121,7 +123,7 @@ export const useRecipeForm = (recipeId) => {
   }, [formData, ingredients]);
 
   const updateRecipe = useCallback(async () => {
-    const recipeResponse = await fetch(`/api/recipes/${recipeId}`, {
+    const recipeResponse = await fetchWithAuth(`/api/recipes/${recipeId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -133,7 +135,7 @@ export const useRecipeForm = (recipeId) => {
     if (!recipeResponse.ok) throw new Error("Error actualizando receta");
 
     for (const originalIngredient of recipeData.data.ingredientes) {
-      await fetch(
+      await fetchWithAuth(
         `/api/recipes/${recipeId}/ingredients/${originalIngredient.ingrediente_id}`,
         {
           method: "DELETE",
@@ -146,7 +148,7 @@ export const useRecipeForm = (recipeId) => {
     );
 
     for (const ingredient of validIngredients) {
-      const ingredientResponse = await fetch(
+      const ingredientResponse = await fetchWithAuth(
         `/api/recipes/${recipeId}/ingredients`,
         {
           method: "POST",
@@ -173,7 +175,7 @@ export const useRecipeForm = (recipeId) => {
       return;
     }
 
-    const response = await fetch(`/api/ingredients/search?q=${query}`);
+    const response = await fetchWithAuth(`/api/ingredients/search?q=${query}`);
     const data = await response.json();
 
     setSearchResults((prev) => ({
@@ -193,7 +195,9 @@ export const useRecipeForm = (recipeId) => {
       }
       return true;
     } catch (error) {
-      console.error("Error:", error);
+      if (error.message !== "SESSION_EXPIRED") {
+        console.error("Error:", error);
+      }
       return false;
     } finally {
       setLoading(false);

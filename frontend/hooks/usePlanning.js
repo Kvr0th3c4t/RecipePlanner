@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { useFetch } from "./useFetch";
+import { fetchWithAuth } from "./fetchWithAuth";
 import toast from "react-hot-toast";
 
 export const usePlanning = () => {
@@ -122,7 +123,7 @@ export const usePlanning = () => {
 
       for (const [key, assignment] of Object.entries(pendingChanges)) {
         if (assignment.action === "delete") {
-          const response = await fetch("/api/planning/deleteRecipe", {
+          const response = await fetchWithAuth("/api/planning/deleteRecipe", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -140,7 +141,7 @@ export const usePlanning = () => {
           }
         } else {
           const [day, tipo_comida] = key.split("_");
-          const response = await fetch("/api/planning/asignRecipe", {
+          const response = await fetchWithAuth("/api/planning/asignRecipe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -160,7 +161,9 @@ export const usePlanning = () => {
       setPendingChanges({});
       return true;
     } catch (error) {
-      console.error(error);
+      if (error.message !== "SESSION_EXPIRED") {
+        console.error(error);
+      }
       return false;
     } finally {
       setLoading(false);
@@ -168,7 +171,6 @@ export const usePlanning = () => {
   }, [planningData, slot, pendingChanges, refetch]);
 
   return {
-    // Estados
     loading,
     planningData: planningData?.data,
     modal,
@@ -181,13 +183,11 @@ export const usePlanning = () => {
     days,
     mealType,
 
-    // Setters (para el componente)
     setModal,
     setSelectedRecipe,
     setModalSearch,
     setModalPage,
 
-    // Handlers
     handleSlot,
     handleSearchParam,
     handleRecipeSelect,
@@ -196,7 +196,6 @@ export const usePlanning = () => {
     handleClearSlot,
     handleSaveChanges,
 
-    // Helper
     fetchData,
   };
 };

@@ -39,7 +39,7 @@ export const UserProvider = ({ children }) => {
         if (estado.isAuthenticated) {
             sessionCheckInterval.current = setInterval(() => {
                 checkSessionStatus();
-            }, 10000);
+            }, 600000);
 
             return () => {
                 if (sessionCheckInterval.current) {
